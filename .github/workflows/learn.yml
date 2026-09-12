@@ -40,3 +40,6 @@ jobs:
       # 它同时覆盖了多文件编译（tb + cpu_core + L00 的 alu32）这条路径。
       - name: Reuse-style reference implementation passes
         run: ./learn check L01 --from refs/cpu_core_reuse.sv --no-color
+
+      - name: L02 reference implementation passes
+        run: ./learn check L02 --ref --no-color

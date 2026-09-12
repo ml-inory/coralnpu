@@ -55,10 +55,14 @@ STAGES: list[Stage] = [
     ),
     Stage(
         code="L02",
-        title="访存子系统（LSU 与槽表）",
+        title="访存子系统（LSU）",
         directory="L02_lsu",
-        summary="实现字节/半字掩码、非对齐处理、以及上游那种「槽表」式访存状态机。",
-        anchors=["doc/microarch/lsu.md", "hdl/chisel/src/coralnpu/scalar/Lsu.scala"],
+        summary="把访存做成带 valid/ready 握手的独立模块：支持存储器延迟与非对齐访问拆分。",
+        anchors=[
+            "doc/microarch/lsu.md",
+            "hdl/chisel/src/coralnpu/scalar/Lsu.scala",
+        ],
+        ready=True,
     ),
     Stage(
         code="L03",

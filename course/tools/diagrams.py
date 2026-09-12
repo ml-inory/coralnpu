@@ -440,6 +440,68 @@ def c_to_machine() -> str:
     return svg(1090, 320, "\n".join(b), "图：课程脚本 course/tools/build_program.py 就是把最后一步自动化了")
 
 
+def lsu_fsm() -> str:
+    b = []
+    b.append(text(24, 34, "LSU 状态机：一次访存指令 → 1~2 笔对齐事务", size=18, bold=True))
+    # 三个状态
+    b.append(box(40, 90, 180, 86, "IDLE\n空闲\nbusy=0, done=0", fill=LBLUE, stroke=BLUE, size=12.5))
+    b.append(box(300, 90, 200, 86, "REQ\n发出事务\ndmem_valid=1\n等 dmem_ready", fill=LAMBER, stroke=AMBER, size=12.5))
+    b.append(box(590, 90, 180, 86, "FINISH\n完成\ndone=1", fill=LGREEN, stroke=GREEN, size=12.5))
+    b.append(box(840, 90, 170, 86, "回到 IDLE\n等下一\n条指令", fill=GREY, stroke=MUTED, size=12.5))
+    b.append(arrow(224, 133, 296, 133, label="req_valid=1\n锁存请求"))
+    b.append(arrow(504, 133, 586, 133, label="ready=1 且\n不需要第二笔"))
+    b.append(arrow(774, 133, 836, 133))
+    b.append(arrow(500, 180, 400, 236, curve=10, color=AMBER, label="ready=1 且需要第二笔\nstep=1，地址 +4"))
+    b.append(box(300, 236, 200, 60, "再发一笔 REQ", fill=LAMBER, stroke=AMBER, size=13))
+    b.append(arrow(500, 266, 660, 180, curve=26, color=AMBER, label="ready=1 → FINISH"))
+    b.append(text(24, 330, "核心侧：busy=1 时冻结 PC 与寄存器写回；done=1 的那一拍提交这条指令（写回 / trace / PC+4）。",
+                  size=12, fill=MUTED))
+    b.append(text(24, 354, "存储器侧：addr/wmask/wdata 在 REQ 期间必须保持不变，直到 ready=1（valid/ready 握手的基本纪律）。",
+                  size=12, fill=MUTED))
+    return svg(1040, 380, "\n".join(b))
+
+
+def unaligned_split() -> str:
+    b = []
+    b.append(text(24, 34, "非对齐字存储 sw 0xAABBCCDD, 3(s5)：拆成两笔事务", size=17, bold=True))
+    # 两个字
+    for wi, (label, base) in enumerate([("字 0（地址 A）", 0xA0), ("字 1（地址 A+4）", 0xE0)]):
+        y = 80 + wi * 120
+        b.append(text(24, y + 24, label, size=13, bold=True, mono=False,
+                      fill=BLUE if wi == 0 else GREEN))
+        for i in range(4):
+            x = 210 + i * 120
+            fill = "#ffffff"
+            stroke = BLUE if wi == 0 else GREEN
+            b.append(box(x, y, 120, 56, "", fill=fill, stroke=stroke))
+            b.append(text(x + 60, y + 22, f"byte{wi*4+i}", size=11, anchor="middle", fill=MUTED))
+            if wi == 0:
+                val = {0: "44", 1: "EF", 2: "BE", 3: "DD"}[i]
+            else:
+                val = {0: "CC", 1: "BB", 2: "AA", 3: "55"}[i]
+            b.append(text(x + 60, y + 44, val, size=15, anchor="middle", mono=True, bold=True))
+    # 数据字节
+    b.append(text(24, 252, "要写入的 4 个字节（从地址 A+3 开始）：", size=13, bold=True))
+    for i, val in enumerate(["DD", "CC", "BB", "AA"]):
+        x = 330 + i * 100
+        b.append(box(x, 230, 100, 44, "", fill=LAMBER, stroke=AMBER))
+        b.append(text(x + 50, 258, val, size=14, anchor="middle", mono=True, bold=True, fill=AMBER))
+    b.append(arrow(360, 230, 270, 140, curve=16, color=AMBER, label=""))
+    b.append(arrow(660, 230, 690, 200, curve=16, color=AMBER, label=""))
+    # 两笔事务
+    b.append(box(24, 320, 470, 96, "", fill=LBLUE, stroke=BLUE))
+    b.append(text(40, 348, "第一笔（字 0）：addr=A, wmask=1000, wdata=0xDD000000",
+                  size=12.5, bold=True, fill=BLUE))
+    b.append(text(40, 372, "只改 byte3：wmask = 0b1111 << 3 的低 4 位；数据 = 原始值 << 24", size=11.5, fill=MUTED))
+    b.append(text(40, 396, "剩下没写进去的 3 个字节 → 用原始值 >> 8 交给第二笔", size=11.5, fill=MUTED))
+    b.append(box(520, 320, 470, 96, "", fill=LGREEN, stroke=GREEN))
+    b.append(text(536, 348, "第二笔（字 1）：addr=A+4, wmask=0111, wdata=0x00AABBCC",
+                  size=12.5, bold=True, fill=GREEN))
+    b.append(text(536, 372, "改 byte0..byte2；wmask = 0b1111 >> (4-3) = 0111", size=11.5, fill=MUTED))
+    b.append(text(536, 396, "两笔都等 ready 完成，最后一起提交指令", size=11.5, fill=MUTED))
+    return svg(1020, 450, "\n".join(b), "非对齐载入方向反过来：先读两个字，拼成 64 位后右移 8*offset，再取需要的字节并扩展")
+
+
 DIAGRAMS = {
     "learning_loop": learning_loop,
     "repo_map": repo_map,
@@ -452,6 +514,8 @@ DIAGRAMS = {
     "comb_vs_seq": comb_vs_seq,
     "clock_wave": clock_wave,
     "c_to_machine": c_to_machine,
+    "lsu_fsm": lsu_fsm,
+    "unaligned_split": unaligned_split,
 }
 
 # 每张图给哪些课程用
@@ -459,6 +523,7 @@ USED_BY = {
     "L00_setup": ["learning_loop", "repo_map", "toolchain_flow", "memory_map", "coralnpu_arch"],
     "L01_scalar": ["rv32i_formats", "single_cycle_datapath", "trace_compare", "memory_map"],
     "P0_prep": ["comb_vs_seq", "clock_wave", "c_to_machine", "memory_map", "single_cycle_datapath"],
+    "L02_lsu": ["lsu_fsm", "unaligned_split", "memory_map"],
 }
 
 def generate(only: list[str] | None = None, verbose: bool = True) -> list[str]:

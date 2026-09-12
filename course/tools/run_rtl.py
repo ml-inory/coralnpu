@@ -52,6 +52,7 @@ def run_sim(
     data_hex: str,
     max_cycles: int = 200_000,
     name: str = "sim",
+    plusargs: dict | None = None,
 ) -> SimResult:
     os.makedirs(work_dir, exist_ok=True)
     trace_path = os.path.join(work_dir, f"{name}.trace")
@@ -65,6 +66,8 @@ def run_sim(
         f"+DMEM={dmem_path}",
         f"+MAX_CYCLES={max_cycles}",
     ]
+    for key, value in (plusargs or {}).items():
+        cmd.append(f"+{key}={value}")
     proc = subprocess.run(cmd, capture_output=True, text=True, cwd=work_dir)
     log = proc.stdout + proc.stderr
 

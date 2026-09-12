@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1020" height="450" viewBox="0 0 1020 450">
+<defs><marker id="arrowhead" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#1f2933"/></marker></defs>
+<rect width="1020" height="450" fill="#ffffff"/>
+<text x="24" y="34" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="17" font-weight="700" fill="#1f2933" text-anchor="start"><tspan x="24" dy="0">非对齐字存储 sw 0xAABBCCDD, 3(s5)：拆成两笔事务</tspan></text>
+<text x="24" y="104" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="13" font-weight="700" fill="#1d4ed8" text-anchor="start"><tspan x="24" dy="0">字 0（地址 A）</tspan></text>
+<rect x="210" y="80" width="120" height="56" rx="8" ry="8" fill="#ffffff" stroke="#1d4ed8" stroke-width="1.6"/>
+<text x="270" y="102" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="11" font-weight="400" fill="#5b6b7b" text-anchor="middle"><tspan x="270" dy="0">byte0</tspan></text>
+<text x="270" y="124" font-family="'Noto Sans Mono CJK SC','DejaVu Sans Mono',monospace" font-size="15" font-weight="700" fill="#1f2933" text-anchor="middle"><tspan x="270" dy="0">44</tspan></text>
+<rect x="330" y="80" width="120" height="56" rx="8" ry="8" fill="#ffffff" stroke="#1d4ed8" stroke-width="1.6"/>
+<text x="390" y="102" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="11" font-weight="400" fill="#5b6b7b" text-anchor="middle"><tspan x="390" dy="0">byte1</tspan></text>
+<text x="390" y="124" font-family="'Noto Sans Mono CJK SC','DejaVu Sans Mono',monospace" font-size="15" font-weight="700" fill="#1f2933" text-anchor="middle"><tspan x="390" dy="0">EF</tspan></text>
+<rect x="450" y="80" width="120" height="56" rx="8" ry="8" fill="#ffffff" stroke="#1d4ed8" stroke-width="1.6"/>
+<text x="510" y="102" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="11" font-weight="400" fill="#5b6b7b" text-anchor="middle"><tspan x="510" dy="0">byte2</tspan></text>
+<text x="510" y="124" font-family="'Noto Sans Mono CJK SC','DejaVu Sans Mono',monospace" font-size="15" font-weight="700" fill="#1f2933" text-anchor="middle"><tspan x="510" dy="0">BE</tspan></text>
+<rect x="570" y="80" width="120" height="56" rx="8" ry="8" fill="#ffffff" stroke="#1d4ed8" stroke-width="1.6"/>
+<text x="630" y="102" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="11" font-weight="400" fill="#5b6b7b" text-anchor="middle"><tspan x="630" dy="0">byte3</tspan></text>
+<text x="630" y="124" font-family="'Noto Sans Mono CJK SC','DejaVu Sans Mono',monospace" font-size="15" font-weight="700" fill="#1f2933" text-anchor="middle"><tspan x="630" dy="0">DD</tspan></text>
+<text x="24" y="224" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="13" font-weight="700" fill="#0f766e" text-anchor="start"><tspan x="24" dy="0">字 1（地址 A+4）</tspan></text>
+<rect x="210" y="200" width="120" height="56" rx="8" ry="8" fill="#ffffff" stroke="#0f766e" stroke-width="1.6"/>
+<text x="270" y="222" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="11" font-weight="400" fill="#5b6b7b" text-anchor="middle"><tspan x="270" dy="0">byte4</tspan></text>
+<text x="270" y="244" font-family="'Noto Sans Mono CJK SC','DejaVu Sans Mono',monospace" font-size="15" font-weight="700" fill="#1f2933" text-anchor="middle"><tspan x="270" dy="0">CC</tspan></text>
+<rect x="330" y="200" width="120" height="56" rx="8" ry="8" fill="#ffffff" stroke="#0f766e" stroke-width="1.6"/>
+<text x="390" y="222" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="11" font-weight="400" fill="#5b6b7b" text-anchor="middle"><tspan x="390" dy="0">byte5</tspan></text>
+<text x="390" y="244" font-family="'Noto Sans Mono CJK SC','DejaVu Sans Mono',monospace" font-size="15" font-weight="700" fill="#1f2933" text-anchor="middle"><tspan x="390" dy="0">BB</tspan></text>
+<rect x="450" y="200" width="120" height="56" rx="8" ry="8" fill="#ffffff" stroke="#0f766e" stroke-width="1.6"/>
+<text x="510" y="222" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="11" font-weight="400" fill="#5b6b7b" text-anchor="middle"><tspan x="510" dy="0">byte6</tspan></text>
+<text x="510" y="244" font-family="'Noto Sans Mono CJK SC','DejaVu Sans Mono',monospace" font-size="15" font-weight="700" fill="#1f2933" text-anchor="middle"><tspan x="510" dy="0">AA</tspan></text>
+<rect x="570" y="200" width="120" height="56" rx="8" ry="8" fill="#ffffff" stroke="#0f766e" stroke-width="1.6"/>
+<text x="630" y="222" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="11" font-weight="400" fill="#5b6b7b" text-anchor="middle"><tspan x="630" dy="0">byte7</tspan></text>
+<text x="630" y="244" font-family="'Noto Sans Mono CJK SC','DejaVu Sans Mono',monospace" font-size="15" font-weight="700" fill="#1f2933" text-anchor="middle"><tspan x="630" dy="0">55</tspan></text>
+<text x="24" y="252" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="13" font-weight="700" fill="#1f2933" text-anchor="start"><tspan x="24" dy="0">要写入的 4 个字节（从地址 A+3 开始）：</tspan></text>
+<rect x="330" y="230" width="100" height="44" rx="8" ry="8" fill="#fdf1df" stroke="#b45309" stroke-width="1.6"/>
+<text x="380" y="258" font-family="'Noto Sans Mono CJK SC','DejaVu Sans Mono',monospace" font-size="14" font-weight="700" fill="#b45309" text-anchor="middle"><tspan x="380" dy="0">DD</tspan></text>
+<rect x="430" y="230" width="100" height="44" rx="8" ry="8" fill="#fdf1df" stroke="#b45309" stroke-width="1.6"/>
+<text x="480" y="258" font-family="'Noto Sans Mono CJK SC','DejaVu Sans Mono',monospace" font-size="14" font-weight="700" fill="#b45309" text-anchor="middle"><tspan x="480" dy="0">CC</tspan></text>
+<rect x="530" y="230" width="100" height="44" rx="8" ry="8" fill="#fdf1df" stroke="#b45309" stroke-width="1.6"/>
+<text x="580" y="258" font-family="'Noto Sans Mono CJK SC','DejaVu Sans Mono',monospace" font-size="14" font-weight="700" fill="#b45309" text-anchor="middle"><tspan x="580" dy="0">BB</tspan></text>
+<rect x="630" y="230" width="100" height="44" rx="8" ry="8" fill="#fdf1df" stroke="#b45309" stroke-width="1.6"/>
+<text x="680" y="258" font-family="'Noto Sans Mono CJK SC','DejaVu Sans Mono',monospace" font-size="14" font-weight="700" fill="#b45309" text-anchor="middle"><tspan x="680" dy="0">AA</tspan></text>
+<path d="M 360 230 Q 315.0 169.0 270 140" fill="none" stroke="#b45309" stroke-width="1.8" marker-end="url(#arrowhead)"/>
+<path d="M 660 230 Q 675.0 199.0 690 200" fill="none" stroke="#b45309" stroke-width="1.8" marker-end="url(#arrowhead)"/>
+<rect x="24" y="320" width="470" height="96" rx="8" ry="8" fill="#e8effd" stroke="#1d4ed8" stroke-width="1.6"/>
+<text x="40" y="348" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="12.5" font-weight="700" fill="#1d4ed8" text-anchor="start"><tspan x="40" dy="0">第一笔（字 0）：addr=A, wmask=1000, wdata=0xDD000000</tspan></text>
+<text x="40" y="372" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="11.5" font-weight="400" fill="#5b6b7b" text-anchor="start"><tspan x="40" dy="0">只改 byte3：wmask = 0b1111 &lt;&lt; 3 的低 4 位；数据 = 原始值 &lt;&lt; 24</tspan></text>
+<text x="40" y="396" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="11.5" font-weight="400" fill="#5b6b7b" text-anchor="start"><tspan x="40" dy="0">剩下没写进去的 3 个字节 → 用原始值 &gt;&gt; 8 交给第二笔</tspan></text>
+<rect x="520" y="320" width="470" height="96" rx="8" ry="8" fill="#e2f4f1" stroke="#0f766e" stroke-width="1.6"/>
+<text x="536" y="348" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="12.5" font-weight="700" fill="#0f766e" text-anchor="start"><tspan x="536" dy="0">第二笔（字 1）：addr=A+4, wmask=0111, wdata=0x00AABBCC</tspan></text>
+<text x="536" y="372" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="11.5" font-weight="400" fill="#5b6b7b" text-anchor="start"><tspan x="536" dy="0">改 byte0..byte2；wmask = 0b1111 &gt;&gt; (4-3) = 0111</tspan></text>
+<text x="536" y="396" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="11.5" font-weight="400" fill="#5b6b7b" text-anchor="start"><tspan x="536" dy="0">两笔都等 ready 完成，最后一起提交指令</tspan></text>
+<text x="24" y="436" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="12" font-weight="400" fill="#5b6b7b" text-anchor="start"><tspan x="24" dy="0">非对齐载入方向反过来：先读两个字，拼成 64 位后右移 8*offset，再取需要的字节并扩展</tspan></text>
+</svg>

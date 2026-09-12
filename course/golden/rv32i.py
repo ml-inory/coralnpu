@@ -112,12 +112,10 @@ class Core:
         return n
 
     # ------------------------------------------------------------- 内存访问
-    def _check_aligned(self, addr: int, size: int) -> None:
-        if addr % size != 0:
-            raise CoreFault(f"非对齐访问 addr=0x{addr:08x} size={size}（L02 才会实现非对齐支持）")
-
     def data_read(self, addr: int, size: int, signed: bool) -> int:
-        self._check_aligned(addr, size)
+        # 架构上非对齐访问是合法的（硬件可以自己拆分，也可以选择触发异常）。
+        # L01 的核只支持对齐访问；L02 用 LSU 把非对齐访问拆成两次对齐事务，
+        # 两者的架构结果必须与这里的逐字节读写一致。
         if self.itcm_base <= addr < self.itcm_base + len(self.itcm):
             region, off = self.itcm, addr - self.itcm_base
         elif self.dtcm_base <= addr < self.dtcm_base + len(self.dtcm):
@@ -130,7 +128,6 @@ class Core:
         return sext(raw, size * 8) if signed else raw
 
     def data_write(self, addr: int, size: int, value: int) -> None:
-        self._check_aligned(addr, size)
         if self.itcm_base <= addr < self.itcm_base + len(self.itcm):
             raise CoreFault(f"store 打到 ITCM（只读）addr=0x{addr:08x}")
         if not (self.dtcm_base <= addr < self.dtcm_base + len(self.dtcm)):
