@@ -1,0 +1,42 @@
+# CoralNPU 教学仓 CI：保证课程与检查器不会腐烂。
+#
+# 它做两件事：
+#   1. 用最小依赖（python + iverilog + riscv gcc）跑通每节课的参考实现
+#   2. 确认每节课的骨架实现「确实会失败」——否则说明检查器形同虚设
+name: CoralNPU course
+
+on:
+  workflow_dispatch:
+  pull_request:
+  push:
+    branches:
+      - main
+
+jobs:
+  course:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install toolchain
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq iverilog gcc-riscv64-unknown-elf
+
+      - name: Environment self-check
+        run: ./learn doctor
+
+      - name: L00 reference implementation passes
+        run: |
+          # 只跑 RTL 与工具链部分：仓库地图问答是给学员做的，CI 里没有答案
+          python3 course/lessons/L00_setup/tests/checks.py --ref --no-color --only alu toolchain
+
+      - name: L01 reference implementation passes
+        run: ./learn check L01 --ref --no-color
+
+      # 注意：不要断言 rtl/cpu_core.sv 必须失败——那是学员正在写的文件，
+      # 学员写完之后这条断言会必然误报。这里改为验证「复用版参考实现」也能通过，
+      # 它同时覆盖了多文件编译（tb + cpu_core + L00 的 alu32）这条路径。
+      - name: Reuse-style reference implementation passes
+        run: ./learn check L01 --from refs/cpu_core_reuse.sv --no-color

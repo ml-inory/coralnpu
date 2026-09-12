@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1040" height="300" viewBox="0 0 1040 300">
+<defs><marker id="arrowhead" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#1f2933"/></marker></defs>
+<rect width="1040" height="300" fill="#ffffff"/>
+<text x="24" y="34" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="18" font-weight="700" fill="#1f2933" text-anchor="start"><tspan x="24" dy="0">组合逻辑 vs 时序逻辑：有没有「记忆」是唯一的分界</tspan></text>
+<rect x="24" y="64" width="480" height="150" rx="8" ry="8" fill="#e8effd" stroke="#1d4ed8" stroke-width="1.6"/>
+<text x="44" y="92" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="14" font-weight="700" fill="#1d4ed8" text-anchor="start"><tspan x="44" dy="0">组合逻辑：输出只由当前输入决定</tspan></text>
+<rect x="48" y="116" width="90" height="50" rx="8" ry="8" fill="#ffffff" stroke="#1d4ed8" stroke-width="1.6"/><text x="93.0" y="145.55" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="middle"><tspan x="93.0" dy="0">输入 a,b</tspan></text>
+<rect x="180" y="116" width="110" height="50" rx="8" ry="8" fill="#ffffff" stroke="#1d4ed8" stroke-width="1.6"/><text x="235.0" y="145.55" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="middle"><tspan x="235.0" dy="0">与/或门</tspan></text>
+<rect x="332" y="116" width="90" height="50" rx="8" ry="8" fill="#ffffff" stroke="#1d4ed8" stroke-width="1.6"/><text x="377.0" y="145.55" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="middle"><tspan x="377.0" dy="0">输出 y</tspan></text>
+<path d="M 140 141 L 176 141" fill="none" stroke="#1f2933" stroke-width="1.8" marker-end="url(#arrowhead)"/>
+<path d="M 292 141 L 328 141" fill="none" stroke="#1f2933" stroke-width="1.8" marker-end="url(#arrowhead)"/>
+<text x="48" y="192" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="11.5" font-weight="400" fill="#5b6b7b" text-anchor="start"><tspan x="48" dy="0">输入一变，输出立刻跟着变（只需经过几个门延迟）。Verilog 写法：assign / always_comb</tspan></text>
+<rect x="530" y="64" width="480" height="150" rx="8" ry="8" fill="#e2f4f1" stroke="#0f766e" stroke-width="1.6"/>
+<text x="550" y="92" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="14" font-weight="700" fill="#0f766e" text-anchor="start"><tspan x="550" dy="0">时序逻辑：只在时钟边沿改变，有记忆</tspan></text>
+<rect x="554" y="116" width="90" height="50" rx="8" ry="8" fill="#ffffff" stroke="#0f766e" stroke-width="1.6"/><text x="599.0" y="145.55" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="middle"><tspan x="599.0" dy="0">输入 d</tspan></text>
+<rect x="686" y="116" width="120" height="50" rx="8" ry="8" fill="#ffffff" stroke="#0f766e" stroke-width="1.6"/><text x="746.0" y="145.55" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="middle"><tspan x="746.0" dy="0">触发器</tspan></text>
+<rect x="848" y="116" width="90" height="50" rx="8" ry="8" fill="#ffffff" stroke="#0f766e" stroke-width="1.6"/><text x="893.0" y="145.55" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="middle"><tspan x="893.0" dy="0">输出 q</tspan></text>
+<path d="M 646 141 L 682 141" fill="none" stroke="#1f2933" stroke-width="1.8" marker-end="url(#arrowhead)"/>
+<path d="M 808 141 L 844 141" fill="none" stroke="#1f2933" stroke-width="1.8" marker-end="url(#arrowhead)"/>
+<text x="686" y="190" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="11" font-weight="400" fill="#0f766e" text-anchor="middle"><tspan x="686" dy="0">时钟边沿</tspan></text>
+<path d="M 746 208 L 746 170" fill="none" stroke="#0f766e" stroke-width="1.8" marker-end="url(#arrowhead)"/>
+<text x="554" y="192" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="11.5" font-weight="400" fill="#5b6b7b" text-anchor="start"><tspan x="554" dy="0">d 变了不算数，要到下一个时钟上升沿 q 才更新。写法：always_ff @(posedge clk)</tspan></text>
+<text x="24" y="250" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="13" font-weight="700" fill="#1f2933" text-anchor="start"><tspan x="24" dy="0">一句话：组合逻辑 = 当前输入的函数；时序逻辑 = 记住上一次的值，并在时钟边沿更新。</tspan></text>
+<text x="24" y="278" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="12" font-weight="400" fill="#5b6b7b" text-anchor="start"><tspan x="24" dy="0">处理器里两者都有：ALU、多路选择器是组合逻辑；PC、寄存器堆、状态机是时序逻辑。</tspan></text>
+
+</svg>

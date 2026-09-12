@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+# CoralNPU 教学仓入口：真正的实现在 course/learn，这里只是方便你在仓库根目录直接敲 ./learn。
+set -euo pipefail
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+exec python3 "${ROOT}/course/learn" "$@"

@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1050" height="378" viewBox="0 0 1050 378">
+<defs><marker id="arrowhead" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#1f2933"/></marker></defs>
+<rect width="1050" height="378" fill="#ffffff"/>
+<text x="24" y="34" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="18" font-weight="700" fill="#1f2933" text-anchor="start"><tspan x="24" dy="0">时钟、复位与触发：一个计数器的波形</tspan></text>
+<text x="24" y="74" font-family="'Noto Sans Mono CJK SC','DejaVu Sans Mono',monospace" font-size="13" font-weight="700" fill="#1f2933" text-anchor="start"><tspan x="24" dy="0">clk</tspan></text>
+<polyline points="150,70 196,70 196,108 242,108 242,70 288,70 288,108 334,108 334,70 380,70 380,108 426,108 426,70 472,70 472,108 518,108 518,70 564,70 564,108 610,108 610,70 656,70" fill="none" stroke="#1d4ed8" stroke-width="1.8"/>
+<text x="24" y="186" font-family="'Noto Sans Mono CJK SC','DejaVu Sans Mono',monospace" font-size="13" font-weight="700" fill="#1f2933" text-anchor="start"><tspan x="24" dy="0">rst</tspan></text>
+<polyline points="150,182 242,182 242,196 610,196" fill="none" stroke="#b45309" stroke-width="1.8"/>
+<text x="248" y="176" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="11" font-weight="400" fill="#5b6b7b" text-anchor="start"><tspan x="248" dy="0">复位期间 q 被清 0</tspan></text>
+<text x="24" y="244" font-family="'Noto Sans Mono CJK SC','DejaVu Sans Mono',monospace" font-size="13" font-weight="700" fill="#1f2933" text-anchor="start"><tspan x="24" dy="0">en</tspan></text>
+<polyline points="150,240 288,240 288,254 518,254 518,240 610,240" fill="none" stroke="#0f766e" stroke-width="1.8"/>
+<text x="24" y="302" font-family="'Noto Sans Mono CJK SC','DejaVu Sans Mono',monospace" font-size="13" font-weight="700" fill="#1f2933" text-anchor="start"><tspan x="24" dy="0">q</tspan></text>
+<polyline points="150,298 196,298" fill="none" stroke="#6d28d9" stroke-width="1.8"/>
+<text x="173.0" y="290" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="11" font-weight="400" fill="#6d28d9" text-anchor="middle"><tspan x="173.0" dy="0">0</tspan></text>
+<polyline points="288,288 334,288" fill="none" stroke="#6d28d9" stroke-width="1.8"/>
+<text x="311.0" y="280" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="11" font-weight="400" fill="#6d28d9" text-anchor="middle"><tspan x="311.0" dy="0">1</tspan></text>
+<polyline points="334,288 380,288" fill="none" stroke="#6d28d9" stroke-width="1.8"/>
+<text x="357.0" y="280" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="11" font-weight="400" fill="#6d28d9" text-anchor="middle"><tspan x="357.0" dy="0">2</tspan></text>
+<polyline points="380,288 426,288" fill="none" stroke="#6d28d9" stroke-width="1.8"/>
+<text x="403.0" y="280" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="11" font-weight="400" fill="#6d28d9" text-anchor="middle"><tspan x="403.0" dy="0">3</tspan></text>
+<polyline points="426,288 472,288" fill="none" stroke="#6d28d9" stroke-width="1.8"/>
+<text x="449.0" y="280" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="11" font-weight="400" fill="#6d28d9" text-anchor="middle"><tspan x="449.0" dy="0">4</tspan></text>
+<polyline points="472,288 518,288" fill="none" stroke="#6d28d9" stroke-width="1.8"/>
+<text x="495.0" y="280" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="11" font-weight="400" fill="#6d28d9" text-anchor="middle"><tspan x="495.0" dy="0">5</tspan></text>
+<polyline points="518,288 564,288" fill="none" stroke="#6d28d9" stroke-width="1.8"/>
+<text x="541.0" y="280" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="11" font-weight="400" fill="#6d28d9" text-anchor="middle"><tspan x="541.0" dy="0">5</tspan></text>
+<line x1="288" y1="58" x2="288" y2="304" stroke="#5b6b7b" stroke-width="0.8" stroke-dasharray="4 4"/>
+<line x1="334" y1="58" x2="334" y2="304" stroke="#5b6b7b" stroke-width="0.8" stroke-dasharray="4 4"/>
+<line x1="380" y1="58" x2="380" y2="304" stroke="#5b6b7b" stroke-width="0.8" stroke-dasharray="4 4"/>
+<line x1="426" y1="58" x2="426" y2="304" stroke="#5b6b7b" stroke-width="0.8" stroke-dasharray="4 4"/>
+<line x1="472" y1="58" x2="472" y2="304" stroke="#5b6b7b" stroke-width="0.8" stroke-dasharray="4 4"/>
+<line x1="518" y1="58" x2="518" y2="304" stroke="#5b6b7b" stroke-width="0.8" stroke-dasharray="4 4"/>
+<text x="24" y="332" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="12" font-weight="400" fill="#5b6b7b" text-anchor="start"><tspan x="24" dy="0">虚线 = 时钟上升沿：只有在这些时刻，q 才可能变化（en=1 时 +1，en=0 时保持）。</tspan></text>
+<text x="24" y="356" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="12" font-weight="400" fill="#5b6b7b" text-anchor="start"><tspan x="24" dy="0">复位是异步还是同步要看设计；本课程统一用「同步复位 + 复位优先」的写法。</tspan></text>
+
+</svg>

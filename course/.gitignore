@@ -1,0 +1,9 @@
+# 编译产物与仿真输出
+work/
+# 检查器记录的进度
+.state/
+# PDF 渲染中间文件
+lessons/*/.pdfbuild/
+# Python 缓存
+__pycache__/
+*.pyc

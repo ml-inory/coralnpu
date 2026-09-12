@@ -62,4 +62,25 @@ bazel build //tests/verilator_sim:core_mini_axi_sim
 bazel-bin/tests/verilator_sim/core_mini_axi_sim --binary bazel-out/k8-fastbuild-ST-dd8dc713f32d/bin/examples/coralnpu_v2_hello_world_add_floats.elf
 ```
 
+## Learn by building it yourself (教学仓)
+
+This repository also ships a guided course that takes you from an empty file to a
+working NPU, using the RTL in this repository as the reference answer:
+
+```bash
+./learn doctor     # check the toolchain (Python, iverilog, RISC-V GCC)
+./learn list       # ten stages: L00 .. L10
+./learn start L00  # course material for the first stage
+./learn check L01  # run the auto-checker against your own RTL
+```
+
+Ten stages: RV32I single-cycle core → load/store subsystem → pipeline and hazards
+→ AXI shell and boot → floating point → RVV vector core → Zvt matrix engine →
+buses, peripherals and DMA → software stack and models → verification and capstone.
+
+Each stage ships two PDFs (concepts, homework), a starter RTL file with TODOs, and a
+checker that diffs your RTL against a Python golden model instruction by instruction.
+Course material is written in Chinese. See [course/README.md](course/README.md) and
+[course/ROADMAP.md](course/ROADMAP.md).
+
 ![](doc/images/Coral_Logo_200px-2x.png)

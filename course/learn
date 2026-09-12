@@ -1,0 +1,275 @@
+#!/usr/bin/env python3
+"""CoralNPU 教学仓的统一入口。
+
+  ./learn doctor          环境自检（--install 直接装缺的包）
+  ./learn diag            前置知识诊断（25 题，定位你的 gap 在哪一层）
+  ./learn list            所有阶段与进度
+  ./learn start L01       开始一节课：给出 PDF、任务和第一件事
+  ./learn check L01       运行本课检查器（--ref 跑参考实现）
+  ./learn hint L01 3      看第 3 条分级提示
+  ./learn unlock L01      解锁参考实现
+  ./learn progress        学习进度
+  ./learn pdf all         重新渲染课程 PDF
+  ./learn figs            重新生成插图
+"""
+
+from __future__ import annotations
+
+import json
+import os
+import re
+import subprocess
+import sys
+from datetime import datetime
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, HERE)
+
+from tools import doctor as doctor_mod  # noqa: E402
+from tools.stages import STAGES, by_code  # noqa: E402
+
+STATE_DIR = os.path.join(HERE, ".state")
+PROGRESS = os.path.join(STATE_DIR, "progress.json")
+
+GREEN, RED, YELLOW, DIM, BOLD, RESET = "\033[32m", "\033[31m", "\033[33m", "\033[2m", "\033[1m", "\033[0m"
+
+
+def colorize_enabled() -> bool:
+    return sys.stdout.isatty() and os.environ.get("NO_COLOR") is None
+
+
+def c(text: str, code: str) -> str:
+    return f"{code}{text}{RESET}" if colorize_enabled() else text
+
+
+def load_progress() -> dict:
+    if os.path.exists(PROGRESS):
+        with open(PROGRESS, encoding="utf-8") as f:
+            return json.load(f)
+    return {}
+
+
+def save_progress(data: dict) -> None:
+    os.makedirs(STATE_DIR, exist_ok=True)
+    with open(PROGRESS, "w", encoding="utf-8") as f:
+        json.dump(data, f, indent=2, ensure_ascii=False, sort_keys=True)
+
+
+def lesson_dir(stage) -> str:
+    return os.path.join(HERE, "lessons", stage.directory)
+
+
+def cmd_doctor(argv: list[str]) -> int:
+    return doctor_mod.main(argv)
+
+
+def cmd_list(argv: list[str]) -> int:
+    progress = load_progress()
+    print("")
+    print(c("CoralNPU 教学仓 · 课程阶梯", BOLD))
+    print("")
+    for stage in STAGES:
+        rec = progress.get(stage.code)
+        if rec and rec.get("passed") == rec.get("total") and rec.get("total"):
+            mark = c("✔ 完成", GREEN)
+        elif rec:
+            mark = c(f"◐ {rec['passed']}/{rec['total']}", YELLOW)
+        elif not stage.ready:
+            mark = c("· 待编写", DIM)
+        else:
+            mark = c("○ 未开始", DIM)
+        print(f"  {stage.code}  {stage.title.ljust(28)} {mark}")
+        print(f"        {c(stage.summary, DIM)}")
+    print("")
+    print("从 L00 开始：./learn start L00")
+    print("")
+    return 0
+
+
+def cmd_start(argv: list[str]) -> int:
+    if not argv:
+        print("用法：./learn start L01")
+        return 2
+    stage = by_code(argv[0])
+    if not stage:
+        print(f"没有这个阶段：{argv[0]}")
+        return 2
+    d = lesson_dir(stage)
+    print("")
+    print(c(f"{stage.code} · {stage.title}", BOLD))
+    print(f"  {stage.summary}")
+    print("")
+    if not stage.ready:
+        print(c("  这节课的教材还在编写中。", YELLOW))
+        print(f"  你可以先看仓库里的对照实现/文档：")
+        for anchor in stage.anchors:
+            print(f"    - {anchor}")
+        return 0
+    print("  教材：")
+    for name in ("基础知识.pdf", "作业说明.pdf"):
+        path = os.path.join(d, "pdf", name)
+        flag = " " if os.path.exists(path) else c("（未生成，先跑 ./learn pdf）", YELLOW)
+        print(f"    - {os.path.relpath(path, os.path.dirname(HERE))} {flag}")
+    print(f"    - {os.path.relpath(os.path.join(d, 'README.md'), os.path.dirname(HERE))}")
+    print("")
+    if stage.anchors:
+        print("  上游仓库对照（学完再看更像「对答案」）：")
+        for anchor in stage.anchors:
+            print(f"    - {anchor}")
+        print("")
+    print("  你要做的：")
+    starter = os.path.join(d, "rtl", "cpu_core.sv")
+    alu = os.path.join(d, "rtl", "alu32.sv")
+    if not os.path.exists(starter):
+        starter = alu if os.path.exists(alu) else os.path.join(d, "rtl", "majority.sv")
+    if os.path.exists(starter):
+        found = False
+        for line in open(starter, encoding="utf-8"):
+            m = re.search(r"TODO\s*(\d+)[：: ]*\s*(.*)", line)
+            if m:
+                title = m.group(2).strip().rstrip("。")
+                print(f"    TODO {m.group(1)}  {title}")
+                found = True
+        if not found:
+            print(f"    见 {os.path.relpath(starter, os.path.dirname(HERE))}")
+    print("")
+    print(f"  自检：./learn check {stage.code}")
+    print("")
+    return 0
+
+
+def cmd_check(argv: list[str]) -> int:
+    args = list(argv)
+    ref = "--ref" in args
+    if not args:
+        print("用法：./learn check L01 [--ref] [--only 01]")
+        return 2
+    code = next((a for a in args if not a.startswith("-")), None)
+    stage = by_code(code) if code else None
+    if not stage:
+        print(f"没有这个阶段：{code}")
+        return 2
+    checks = os.path.join(lesson_dir(stage), "tests", "checks.py")
+    if not os.path.exists(checks):
+        print(f"{stage.code} 还没有检查器。")
+        return 2
+    rest = [a for a in args if a != code]
+    proc = subprocess.run([sys.executable, checks] + rest)
+    return proc.returncode
+
+
+def cmd_hint(argv: list[str]) -> int:
+    if not argv:
+        print("用法：./learn hint L01 [序号]")
+        return 2
+    stage = by_code(argv[0])
+    if not stage:
+        print(f"没有这个阶段：{argv[0]}")
+        return 2
+    path = os.path.join(lesson_dir(stage), "hints.md")
+    if not os.path.exists(path):
+        print(f"{stage.code} 还没有提示文件。")
+        return 2
+    text = open(path, encoding="utf-8").read()
+    sections = re.split(r"^## 提示 ", text, flags=re.MULTILINE)[1:]
+    if not sections:
+        print(text)
+        return 0
+    if len(argv) > 1:
+        try:
+            idx = int(argv[1]) - 1
+        except ValueError:
+            print("提示序号要是一个数字")
+            return 2
+        if not 0 <= idx < len(sections):
+            print(f"提示序号范围是 1..{len(sections)}")
+            return 2
+        print(f"## 提示 {sections[idx]}")
+        return 0
+    print(f"{stage.code} 共 {len(sections)} 条提示，从最轻的一档开始：")
+    print("")
+    first = sections[0]
+    print(f"## 提示 {first}")
+    print("")
+    print(f"（继续看下一条：./learn hint {stage.code} 2）")
+    return 0
+
+
+def cmd_unlock(argv: list[str]) -> int:
+    if not argv:
+        print("用法：./learn unlock L01")
+        return 2
+    stage = by_code(argv[0])
+    if not stage:
+        print(f"没有这个阶段：{argv[0]}")
+        return 2
+    refs = os.path.join(lesson_dir(stage), "refs")
+    if not os.path.isdir(refs):
+        print(f"{stage.code} 还没有参考实现。")
+        return 2
+    print("参考实现（建议只在卡住时对照，或跑通大部分用例后再看）：")
+    for root, _, files in os.walk(refs):
+        for name in sorted(files):
+            print("  " + os.path.relpath(os.path.join(root, name), HERE))
+    print("")
+    print("对照完请回到自己的实现：./learn check " + stage.code)
+    return 0
+
+
+def cmd_progress(argv: list[str]) -> int:
+    progress = load_progress()
+    if not progress:
+        print("还没有检查记录。先跑一次：./learn check L00")
+        return 0
+    print("")
+    for code in sorted(progress):
+        rec = progress[code]
+        print(f"  {code}: {rec.get('passed')}/{rec.get('total')} 通过（{rec.get('when', '')}）")
+    print("")
+    return 0
+
+
+def cmd_pdf(argv: list[str]) -> int:
+    script = os.path.join(HERE, "tools", "pdf.py")
+    return subprocess.run([sys.executable, script] + list(argv)).returncode
+
+
+def cmd_figs(argv: list[str]) -> int:
+    script = os.path.join(HERE, "tools", "diagrams.py")
+    return subprocess.run([sys.executable, script] + list(argv)).returncode
+
+
+def cmd_diag(argv: list[str]) -> int:
+    script = os.path.join(HERE, "tools", "diagnose.py")
+    return subprocess.run([sys.executable, script] + list(argv)).returncode
+
+
+COMMANDS = {
+    "doctor": cmd_doctor,
+    "diag": cmd_diag,
+    "list": cmd_list,
+    "start": cmd_start,
+    "check": cmd_check,
+    "hint": cmd_hint,
+    "unlock": cmd_unlock,
+    "progress": cmd_progress,
+    "pdf": cmd_pdf,
+    "figs": cmd_figs,
+}
+
+
+def main() -> int:
+    args = sys.argv[1:]
+    if not args or args[0] in ("-h", "--help", "help"):
+        print(__doc__)
+        return 0
+    cmd, rest = args[0], args[1:]
+    if cmd not in COMMANDS:
+        print(f"未知命令：{cmd}\n")
+        print(__doc__)
+        return 2
+    return COMMANDS[cmd](rest)
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
