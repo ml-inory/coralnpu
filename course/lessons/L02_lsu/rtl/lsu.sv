@@ -89,19 +89,60 @@ module lsu (
       word1 <= 32'h0;
     end else begin
       // TODO 1 / TODO 2 / TODO 4：状态机
-      state <= IDLE;
+      case (state)
+        IDLE: begin
+          if (req_valid) begin
+            state <= REQ;
+            // 锁存
+            is_write  <= req_write;
+            funct3_r  <= req_funct3;
+            size      <= size_of(req_funct3);
+            off       <= req_addr[1:0];
+            wdata_r   <= req_wdata;
+
+            // 第一笔：字0
+            addr0     <= {req_addr[31:2], 2'b00};
+            mask0     <= base_mask(req_funct3) << req_addr[1:0];
+            data0     <= req_wdata << (8 * req_addr[1:0]);
+
+            // 第二笔：字1（只在 off + size > 4 时需要）
+            addr1     <= {req_addr[31:2], 2'b00} + 32'd4;
+            mask1     <= base_mask(req_funct3) >> (4 - req_addr[1:0]);
+            data1     <= req_wdata >> (8 * (4 - req_addr[1:0]));
+
+            step      <= 1'b0;
+            need_two  <= (req_addr[1:0] + size_of(req_funct3)) > 4 ? 1'b1 : 1'b0;
+          end
+        end
+
+        REQ: begin
+          if (dmem_ready) begin
+            // 读操作
+            if (!is_write) begin
+              if (!step)  word0 <= dmem_rdata;
+              else        word1 <= dmem_rdata;
+            end
+
+            if (need_two && !step)  step <= 1'b1;
+            else                    state <= FINISH;
+          end
+        end
+
+        FINISH: state <= IDLE;
+        default: state <= IDLE;
+      endcase
     end
   end
 
   always_comb begin
     // TODO 2：把请求送出去，并在 dmem_ready 时结束这一笔
-    dmem_valid = 1'b0;
-    dmem_we    = 1'b0;
-    dmem_addr  = 32'h0;
-    dmem_wmask = 4'b0000;
-    dmem_wdata = 32'h0;
-    busy       = 1'b0;
-    done       = 1'b1;      // ← 占位：假装立即完成，所以现在不会真的访存
+    dmem_valid = (state == REQ);
+    dmem_we    = is_write;
+    dmem_addr  = step ? addr1 : addr0;
+    dmem_wmask = step ? mask1 : mask0;
+    dmem_wdata = step ? data1 : data0;
+    busy       = (state != IDLE);
+    done       = (state == FINISH);      // ← 占位：假装立即完成，所以现在不会真的访存
   end
 
   logic [63:0] combined;
@@ -110,7 +151,20 @@ module lsu (
     // TODO 3：字节重排 + 符号/零扩展
     combined = {word1, word0};
     shifted  = combined >> (8 * off);
-    rdata    = 32'h0;
+    unique case (funct3_r)
+      // lb
+      3'b000: rdata = {{24{shifted[7]}}, shifted[7:0]};
+      // lh
+      3'b001: rdata = {{16{shifted[15]}}, shifted[15:0]};
+      // lw
+      3'b010: rdata = shifted;
+      // lbu
+      3'b100: rdata = {24'b0, shifted[7:0]};
+      // lhu
+      3'b101: rdata = {16'b0, shifted[15:0]};
+
+      default: rdata = 32'h0;
+    endcase
   end
 
 endmodule
