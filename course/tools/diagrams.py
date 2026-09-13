@@ -46,6 +46,8 @@ def esc(text: str) -> str:
 
 def text(x: float, y: float, content: str, size: int = 14, anchor: str = "start",
          bold: bool = False, fill: str = INK, mono: bool = False, line_h: float = 1.35) -> str:
+    # PDF 里插图会被缩放到页面宽度，字号太小会看不清，这里设一个下限
+    size = max(size, 13)
     family = MONO if mono else FONT
     weight = "700" if bold else "400"
     lines = content.split("\n")
@@ -169,7 +171,7 @@ def repo_map() -> str:
         ("L05–L07", "算力：浮点 → RVV 向量 → Zvt 矩阵"),
         ("L08–L09", "SoC 外设、DMA、软件栈与模型"),
         ("L10", "验证方法学与毕业项目"),
-        ("对照实现", "hdl/chisel/... 与 hdl/verilog/rvv/..."),
+        ("对照实现", "hdl/chisel 与 hdl/verilog/rvv"),
     ]):
         y = 100 + i * 40
         b.append(box(546, y, 212, 34, "", fill="#ffffff", stroke=AMBER))
@@ -362,7 +364,7 @@ def comb_vs_seq() -> str:
     b.append(text(554, 192, "d 变了不算数，要到下一个时钟上升沿 q 才更新。写法：always_ff @(posedge clk)", size=11.5, fill=MUTED))
     b.append(text(24, 250, "一句话：组合逻辑 = 当前输入的函数；时序逻辑 = 记住上一次的值，并在时钟边沿更新。", size=13, bold=True))
     b.append(text(24, 278, "处理器里两者都有：ALU、多路选择器是组合逻辑；PC、寄存器堆、状态机是时序逻辑。", size=12, fill=MUTED))
-    return svg(1040, 300, "\n".join(b))
+    return svg(1080, 300, "\n".join(b))
 
 
 def clock_wave() -> str:
@@ -502,6 +504,56 @@ def unaligned_split() -> str:
     return svg(1020, 450, "\n".join(b), "非对齐载入方向反过来：先读两个字，拼成 64 位后右移 8*offset，再取需要的字节并扩展")
 
 
+def lsu_division() -> str:
+    b = []
+    b.append(text(24, 32, "L02 的分工：核心、LSU、存储器各自负责什么", size=18, bold=True))
+
+    # ---- 核心（上）
+    b.append(box(60, 60, 560, 132, "", fill=LBLUE, stroke=BLUE))
+    b.append(text(80, 90, "核心  core_wrapper.sv（课程提供，不用你写）", size=14.5, bold=True, fill=BLUE))
+    for i, t in enumerate([
+        "取指 / 译码 / ALU / 寄存器堆",
+        "算出访存地址 req_addr = rs1 + imm（load 用 imm_i，store 用 imm_s）",
+        "LSU 忙时冻结自己：不写寄存器、PC 不动",
+        "LSU 报 done 的那一拍提交指令（写回 / trace / PC+4）",
+    ]):
+        b.append(text(80, 118 + i * 22, "• " + t, size=12.5))
+
+    # ---- 核心 → LSU 的请求
+    b.append(arrow(340, 196, 340, 252, label="req_valid · req_write · req_funct3 · wdata"))
+    b.append(text(352, 226, "req_addr = rs1 + imm", size=12.5, fill=MUTED))
+
+    # ---- LSU（中）
+    b.append(box(60, 256, 560, 168, "", fill=LAMBER, stroke=AMBER))
+    b.append(text(80, 286, "你实现的 LSU  rtl/lsu.sv（4 个 TODO）", size=14.5, bold=True, fill=AMBER))
+    b.append(text(80, 314, "状态机：IDLE → REQ →（需要第二笔就再来一轮）→ FINISH", size=12.5))
+    for i, t in enumerate([
+        "把一条访存指令拆成 1~2 笔对齐事务（非对齐时跨字拆分）",
+        "等 dmem_ready：握手期间地址/掩码/数据保持不变",
+        "载入方向：拼两个字 → 右移 8*offset → 符号/零扩展",
+    ]):
+        b.append(text(80, 344 + i * 22, "• " + t, size=12.5))
+
+    # ---- LSU → 存储器
+    b.append(arrow(340, 428, 340, 484, label="dmem_valid · dmem_we · addr · wmask · wdata"))
+
+    # ---- 存储器（下）
+    b.append(box(60, 488, 560, 96, "", fill=LGREEN, stroke=GREEN))
+    b.append(text(80, 518, "数据存储器（测试平台的 DTCM 模型）", size=14.5, bold=True, fill=GREEN))
+    b.append(text(80, 546, "• 按 32 位字组织，按 wmask 逐字节写入", size=12.5))
+    b.append(text(80, 570, "• 用 dmem_ready 表示“我现在能接/数据已就绪”，+LATENCY=N 可配 0/2 拍", size=12.5))
+
+    # ---- 两条回程
+    b.append(arrow(700, 520, 700, 300, color=GREEN))
+    b.append(f'<polyline points="700,300 620,300" fill="none" stroke="{GREEN}" stroke-width="1.8" marker-end="url(#arrowhead)"/>')
+    b.append(arrow(700, 300, 700, 130, color=BLUE))
+    b.append(f'<polyline points="700,130 620,130" fill="none" stroke="{BLUE}" stroke-width="1.8" marker-end="url(#arrowhead)"/>')
+    b.append(text(712, 250, "回给 LSU", size=12, fill=GREEN))
+    b.append(text(712, 190, "回给核心", size=12, fill=BLUE))
+
+    return svg(900, 600, "\n".join(b), "分工的边界：核心只管“发命令 + 等 + 提交”，字节级别的搬运全部由 LSU 负责")
+
+
 DIAGRAMS = {
     "learning_loop": learning_loop,
     "repo_map": repo_map,
@@ -516,14 +568,15 @@ DIAGRAMS = {
     "c_to_machine": c_to_machine,
     "lsu_fsm": lsu_fsm,
     "unaligned_split": unaligned_split,
+    "lsu_division": lsu_division,
 }
 
 # 每张图给哪些课程用
 USED_BY = {
     "L00_setup": ["learning_loop", "repo_map", "toolchain_flow", "memory_map", "coralnpu_arch"],
-    "L01_scalar": ["rv32i_formats", "single_cycle_datapath", "trace_compare", "memory_map"],
+    "L01_scalar": ["rv32i_formats", "single_cycle_datapath", "trace_compare", "memory_map", "toolchain_flow"],
     "P0_prep": ["comb_vs_seq", "clock_wave", "c_to_machine", "memory_map", "single_cycle_datapath"],
-    "L02_lsu": ["lsu_fsm", "unaligned_split", "memory_map"],
+    "L02_lsu": ["lsu_fsm", "unaligned_split", "lsu_division", "memory_map"],
 }
 
 def generate(only: list[str] | None = None, verbose: bool = True) -> list[str]:

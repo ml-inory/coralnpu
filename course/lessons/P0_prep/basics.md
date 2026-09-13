@@ -93,7 +93,7 @@ false; echo $?    # 1
 
 ## 2.1 四个阶段
 
-![从 C 到机器码](../diagrams/c_to_machine.svg)
+![从 C 到机器码](diagrams/c_to_machine.svg)
 
 编译一个程序不是一步完成的，而是四步。以课程里的 `hello.c` 为例，每一步都可以单独执行、单独观察：
 
@@ -187,7 +187,7 @@ L01 的第四个测试程序会递归调用函数，就是在验证这套机制�
 
 ## 3.2 组合逻辑 vs 时序逻辑
 
-![组合逻辑与时序逻辑](../diagrams/comb_vs_seq.svg)
+![组合逻辑与时序逻辑](diagrams/comb_vs_seq.svg)
 
 这是整个数字设计最重要的一条分界线：
 
@@ -200,7 +200,7 @@ L01 的第四个测试程序会递归调用函数，就是在验证这套机制�
 
 ## 3.3 时钟与复位
 
-![时钟、复位与触发](../diagrams/clock_wave.svg)
+![时钟、复位与触发](diagrams/clock_wave.svg)
 
 * **时钟 clk**：不停在 0/1 之间翻转的信号。频率 `f`（比如 100 MHz）与周期 `T = 1/f`（10 ns）是一回事。
   「时钟上升沿」就是从 0 跳到 1 的那一瞬间；
@@ -351,7 +351,7 @@ vvp sim.vvp
 | 执行 Execute | ALU 计算 `a1 + (-7)`，并算出下一个 PC | ALU |
 | 写回 Writeback | 把结果写进 a0 | 寄存器堆 |
 
-![单周期数据通路](../diagrams/single_cycle_datapath.svg)
+![单周期数据通路](diagrams/single_cycle_datapath.svg)
 
 ## 5.3 机器码长什么样
 

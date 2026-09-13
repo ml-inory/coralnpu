@@ -4,25 +4,25 @@
 <text x="24" y="32" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="17" font-weight="700" fill="#1f2933" text-anchor="start"><tspan x="24" dy="0">CoralNPU 的三个计算部件（本课程的最终目标）</tspan></text>
 <rect x="24" y="60" width="250" height="210" rx="8" ry="8" fill="#e8effd" stroke="#1d4ed8" stroke-width="1.6"/>
 <text x="149" y="88" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="14" font-weight="700" fill="#1d4ed8" text-anchor="middle"><tspan x="149" dy="0">标量核（L01–L04）</tspan></text>
-<text x="40" y="118" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="11.5" font-weight="400" fill="#1f2933" text-anchor="start"><tspan x="40" dy="0">• RV32IMF 取指/译码/派发</tspan></text>
-<text x="40" y="146" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="11.5" font-weight="400" fill="#1f2933" text-anchor="start"><tspan x="40" dy="0">• 4 路派发，乱序退休</tspan></text>
-<text x="40" y="174" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="11.5" font-weight="400" fill="#1f2933" text-anchor="start"><tspan x="40" dy="0">• LSU：slot 式访存</tspan></text>
-<text x="40" y="202" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="11.5" font-weight="400" fill="#1f2933" text-anchor="start"><tspan x="40" dy="0">• CSR / 异常 / 中断</tspan></text>
+<text x="40" y="118" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start"><tspan x="40" dy="0">• RV32IMF 取指/译码/派发</tspan></text>
+<text x="40" y="146" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start"><tspan x="40" dy="0">• 4 路派发，乱序退休</tspan></text>
+<text x="40" y="174" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start"><tspan x="40" dy="0">• LSU：slot 式访存</tspan></text>
+<text x="40" y="202" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start"><tspan x="40" dy="0">• CSR / 异常 / 中断</tspan></text>
 <rect x="300" y="60" width="250" height="210" rx="8" ry="8" fill="#e2f4f1" stroke="#0f766e" stroke-width="1.6"/>
 <text x="425" y="88" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="14" font-weight="700" fill="#0f766e" text-anchor="middle"><tspan x="425" dy="0">向量核（L06）</tspan></text>
-<text x="316" y="118" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="11.5" font-weight="400" fill="#1f2933" text-anchor="start"><tspan x="316" dy="0">• 128-bit SIMD，64 个向量寄存器</tspan></text>
-<text x="316" y="146" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="11.5" font-weight="400" fill="#1f2933" text-anchor="start"><tspan x="316" dy="0">• vsetvl 控制 vl/vtype</tspan></text>
-<text x="316" y="174" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="11.5" font-weight="400" fill="#1f2933" text-anchor="start"><tspan x="316" dy="0">• stripmining：1 派发 → 4 发射</tspan></text>
-<text x="316" y="202" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="11.5" font-weight="400" fill="#1f2933" text-anchor="start"><tspan x="316" dy="0">• RVV 访存与 vadd/vwmul</tspan></text>
+<text x="316" y="118" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start"><tspan x="316" dy="0">• 128-bit SIMD，64 个向量寄存器</tspan></text>
+<text x="316" y="146" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start"><tspan x="316" dy="0">• vsetvl 控制 vl/vtype</tspan></text>
+<text x="316" y="174" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start"><tspan x="316" dy="0">• stripmining：1 派发 → 4 发射</tspan></text>
+<text x="316" y="202" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start"><tspan x="316" dy="0">• RVV 访存与 vadd/vwmul</tspan></text>
 <rect x="576" y="60" width="250" height="210" rx="8" ry="8" fill="#fdf1df" stroke="#b45309" stroke-width="1.6"/>
 <text x="701" y="88" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="14" font-weight="700" fill="#b45309" text-anchor="middle"><tspan x="701" dy="0">矩阵引擎（L07）</tspan></text>
-<text x="592" y="118" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="11.5" font-weight="400" fill="#1f2933" text-anchor="start"><tspan x="592" dy="0">• 量化的外积 MAC 阵列</tspan></text>
-<text x="592" y="146" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="11.5" font-weight="400" fill="#1f2933" text-anchor="start"><tspan x="592" dy="0">• 8×8×32-bit 累加器</tspan></text>
-<text x="592" y="174" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="11.5" font-weight="400" fill="#1f2933" text-anchor="start"><tspan x="592" dy="0">• 256 MAC/cycle 的目标</tspan></text>
-<text x="592" y="202" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="11.5" font-weight="400" fill="#1f2933" text-anchor="start"><tspan x="592" dy="0">• Zvt：vtmmu / vtmms / vtfmm</tspan></text>
+<text x="592" y="118" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start"><tspan x="592" dy="0">• 量化的外积 MAC 阵列</tspan></text>
+<text x="592" y="146" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start"><tspan x="592" dy="0">• 8×8×32-bit 累加器</tspan></text>
+<text x="592" y="174" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start"><tspan x="592" dy="0">• 256 MAC/cycle 的目标</tspan></text>
+<text x="592" y="202" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start"><tspan x="592" dy="0">• Zvt：vtmmu / vtmms / vtfmm</tspan></text>
 <rect x="24" y="296" width="802" height="60" rx="8" ry="8" fill="#f3f5f7" stroke="#5b6b7b" stroke-width="1.6"/><text x="425.0" y="330.55" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="middle"><tspan x="425.0" dy="0">ITCM 8 KB（指令）· DTCM 32 KB（数据）· AXI4 从/主接口 · TileLink-UL 内部总线（L08）</tspan></text>
 <path d="M 276 165 L 296 165" fill="none" stroke="#1f2933" stroke-width="1.8" marker-end="url(#arrowhead)"/>
 <path d="M 552 165 L 572 165" fill="none" stroke="#1f2933" stroke-width="1.8" marker-end="url(#arrowhead)"/>
-<text x="24" y="386" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="11" font-weight="400" fill="#5b6b7b" text-anchor="start"><tspan x="24" dy="0">资料来源：doc/overview.md、doc/microarch/、README.md（本图按仓库文档重绘）</tspan></text>
+<text x="24" y="386" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="13" font-weight="400" fill="#5b6b7b" text-anchor="start"><tspan x="24" dy="0">资料来源：doc/overview.md、doc/microarch/、README.md（本图按仓库文档重绘）</tspan></text>
 
 </svg>

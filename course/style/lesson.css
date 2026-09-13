@@ -114,6 +114,21 @@ tr:nth-child(even) td { background: #fafcfe; }
 
 img { max-width: 100%; display: block; margin: 6pt auto 10pt auto; }
 
+/* 插图允许稍微"出血"到页边距里：图里的标签按比例缩小后会变细，
+ * 给它更宽的区域能明显改善可读性（正文不受影响）。 */
+figure {
+  margin: 10pt -12mm 14pt -12mm;
+  text-align: center;
+}
+
+figure img { max-width: 100%; margin: 0 auto; }
+
+figure figcaption {
+  font-size: 9pt;
+  color: #5b6b7b;
+  margin-top: 4pt;
+} 
+
 blockquote {
   margin: 0 0 10pt 0;
   padding: 6pt 10pt;

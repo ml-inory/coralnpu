@@ -15,6 +15,7 @@ from __future__ import annotations
 import argparse
 import datetime
 import os
+import re
 import shutil
 import subprocess
 
@@ -60,6 +61,36 @@ def pandoc_html(md_path: str, title: str) -> str:
     return proc.stdout
 
 
+def inline_css(html: str) -> str:
+    """把样式表内联进 HTML。
+
+    之前模板里用的是 <link href="../../style/lesson.css">，而构建目录在
+    lessons/<课>/.pdfbuild/ 下，相对路径实际解析到 course/lessons/style/...（不存在），
+    于是 WeasyPrint 静默跳过样式表：图片没有 max-width 被裁掉、页面边距与字号全丢。
+    内联之后不再依赖任何相对路径。
+    """
+    css_path = os.path.join(COURSE, "style", "lesson.css")
+    with open(css_path, encoding="utf-8") as f:
+        css = f.read()
+    return html.replace("<!--@@CSS@@-->", f"<style>\n{css}\n</style>")
+
+
+def absolute_assets(html: str, md_dir: str) -> str:
+    """把 Markdown 里的相对图片路径改成绝对路径，避免受构建目录位置影响。"""
+
+    def repl(match: re.Match) -> str:
+        attr, url = match.group(1), match.group(2)
+        if url.startswith(("http://", "https://", "data:", "file://", "#")):
+            return match.group(0)
+        path = os.path.normpath(os.path.join(md_dir, url))
+        if not os.path.exists(path):
+            print(f"    ⚠️  插图不存在：{url}（按 {md_dir} 解析）")
+            return match.group(0)
+        return f'{attr}="file://{path}"'
+
+    return re.sub(r'(src|href)="([^"]+)"', repl, html)
+
+
 def render_doc(lesson_dir: str, lesson: str, md_name: str, doc_title: str, subtitle: str) -> str:
     code, main_title, lesson_sub = LESSON_META[lesson]
     src = os.path.join(lesson_dir, md_name)
@@ -72,6 +103,7 @@ def render_doc(lesson_dir: str, lesson: str, md_name: str, doc_title: str, subti
     os.makedirs(out_dir, exist_ok=True)
 
     html = pandoc_html(src, f"{code} {doc_title}")
+    html = absolute_assets(inline_css(html), os.path.dirname(os.path.abspath(src)))
     # 填模板里的字段
     cover_image = ""
     cover_path = os.path.join(lesson_dir, "diagrams", "cover.png")

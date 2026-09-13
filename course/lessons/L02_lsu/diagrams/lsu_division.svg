@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="600" viewBox="0 0 900 600">
+<defs><marker id="arrowhead" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#1f2933"/></marker></defs>
+<rect width="900" height="600" fill="#ffffff"/>
+<text x="24" y="32" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="18" font-weight="700" fill="#1f2933" text-anchor="start"><tspan x="24" dy="0">L02 的分工：核心、LSU、存储器各自负责什么</tspan></text>
+<rect x="60" y="60" width="560" height="132" rx="8" ry="8" fill="#e8effd" stroke="#1d4ed8" stroke-width="1.6"/>
+<text x="80" y="90" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="14.5" font-weight="700" fill="#1d4ed8" text-anchor="start"><tspan x="80" dy="0">核心  core_wrapper.sv（课程提供，不用你写）</tspan></text>
+<text x="80" y="118" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start"><tspan x="80" dy="0">• 取指 / 译码 / ALU / 寄存器堆</tspan></text>
+<text x="80" y="140" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start"><tspan x="80" dy="0">• 算出访存地址 req_addr = rs1 + imm（load 用 imm_i，store 用 imm_s）</tspan></text>
+<text x="80" y="162" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start"><tspan x="80" dy="0">• LSU 忙时冻结自己：不写寄存器、PC 不动</tspan></text>
+<text x="80" y="184" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start"><tspan x="80" dy="0">• LSU 报 done 的那一拍提交指令（写回 / trace / PC+4）</tspan></text>
+<path d="M 340 196 L 340 252" fill="none" stroke="#1f2933" stroke-width="1.8" marker-end="url(#arrowhead)"/><text x="340.0" y="218.0" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="13" font-weight="400" fill="#5b6b7b" text-anchor="middle"><tspan x="340.0" dy="0">req_valid · req_write · req_funct3 · wdata</tspan></text>
+<text x="352" y="226" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="13" font-weight="400" fill="#5b6b7b" text-anchor="start"><tspan x="352" dy="0">req_addr = rs1 + imm</tspan></text>
+<rect x="60" y="256" width="560" height="168" rx="8" ry="8" fill="#fdf1df" stroke="#b45309" stroke-width="1.6"/>
+<text x="80" y="286" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="14.5" font-weight="700" fill="#b45309" text-anchor="start"><tspan x="80" dy="0">你实现的 LSU  rtl/lsu.sv（4 个 TODO）</tspan></text>
+<text x="80" y="314" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start"><tspan x="80" dy="0">状态机：IDLE → REQ →（需要第二笔就再来一轮）→ FINISH</tspan></text>
+<text x="80" y="344" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start"><tspan x="80" dy="0">• 把一条访存指令拆成 1~2 笔对齐事务（非对齐时跨字拆分）</tspan></text>
+<text x="80" y="366" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start"><tspan x="80" dy="0">• 等 dmem_ready：握手期间地址/掩码/数据保持不变</tspan></text>
+<text x="80" y="388" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start"><tspan x="80" dy="0">• 载入方向：拼两个字 → 右移 8*offset → 符号/零扩展</tspan></text>
+<path d="M 340 428 L 340 484" fill="none" stroke="#1f2933" stroke-width="1.8" marker-end="url(#arrowhead)"/><text x="340.0" y="450.0" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="13" font-weight="400" fill="#5b6b7b" text-anchor="middle"><tspan x="340.0" dy="0">dmem_valid · dmem_we · addr · wmask · wdata</tspan></text>
+<rect x="60" y="488" width="560" height="96" rx="8" ry="8" fill="#e2f4f1" stroke="#0f766e" stroke-width="1.6"/>
+<text x="80" y="518" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="14.5" font-weight="700" fill="#0f766e" text-anchor="start"><tspan x="80" dy="0">数据存储器（测试平台的 DTCM 模型）</tspan></text>
+<text x="80" y="546" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start"><tspan x="80" dy="0">• 按 32 位字组织，按 wmask 逐字节写入</tspan></text>
+<text x="80" y="570" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start"><tspan x="80" dy="0">• 用 dmem_ready 表示“我现在能接/数据已就绪”，+LATENCY=N 可配 0/2 拍</tspan></text>
+<path d="M 700 520 L 700 300" fill="none" stroke="#0f766e" stroke-width="1.8" marker-end="url(#arrowhead)"/>
+<polyline points="700,300 620,300" fill="none" stroke="#0f766e" stroke-width="1.8" marker-end="url(#arrowhead)"/>
+<path d="M 700 300 L 700 130" fill="none" stroke="#1d4ed8" stroke-width="1.8" marker-end="url(#arrowhead)"/>
+<polyline points="700,130 620,130" fill="none" stroke="#1d4ed8" stroke-width="1.8" marker-end="url(#arrowhead)"/>
+<text x="712" y="250" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="13" font-weight="400" fill="#0f766e" text-anchor="start"><tspan x="712" dy="0">回给 LSU</tspan></text>
+<text x="712" y="190" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="13" font-weight="400" fill="#1d4ed8" text-anchor="start"><tspan x="712" dy="0">回给核心</tspan></text>
+<text x="24" y="586" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="13" font-weight="400" fill="#5b6b7b" text-anchor="start"><tspan x="24" dy="0">分工的边界：核心只管“发命令 + 等 + 提交”，字节级别的搬运全部由 LSU 负责</tspan></text>
+</svg>

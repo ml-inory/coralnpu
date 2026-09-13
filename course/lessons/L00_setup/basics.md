@@ -6,7 +6,7 @@ CoralNPU 是 Google Research 开源的 NPU（神经网络处理器，也叫 AI �
 面向耳机、AR 眼镜、智能手表这类超低功耗 SoC。它基于 32 位 RISC-V 指令集，
 由**三个计算部件**协同工作：
 
-![CoralNPU 架构](../diagrams/coralnpu_arch.svg)
+![CoralNPU 架构](diagrams/coralnpu_arch.svg)
 
 | 部件 | 作用 | 上游位置 | 本课程阶段 |
 | --- | --- | --- | --- |
@@ -41,7 +41,7 @@ CoralNPU 是 Google Research 开源的 NPU（神经网络处理器，也叫 AI �
 
 ## 2.1 学习闭环
 
-![学习闭环](../diagrams/learning_loop.svg)
+![学习闭环](diagrams/learning_loop.svg)
 
 每节课都走这四步，绝不跳过第三步：
 
@@ -59,7 +59,7 @@ CoralNPU 是 Google Research 开源的 NPU（神经网络处理器，也叫 AI �
 
 ## 2.2 仓库地图
 
-![仓库地图](../diagrams/repo_map.svg)
+![仓库地图](diagrams/repo_map.svg)
 
 这个仓库有两种东西，请严格区分：
 
@@ -72,7 +72,7 @@ CoralNPU 是 Google Research 开源的 NPU（神经网络处理器，也叫 AI �
 
 ## 2.3 一条命令背后的工具链
 
-![工具链流程](../diagrams/toolchain_flow.svg)
+![工具链流程](diagrams/toolchain_flow.svg)
 
 你在本课里会用到四个工具，它们各自负责一段：
 
@@ -87,7 +87,7 @@ CoralNPU 是 Google Research 开源的 NPU（神经网络处理器，也叫 AI �
 
 ## 3.1 内存映射
 
-![内存映射](../diagrams/memory_map.svg)
+![内存映射](diagrams/memory_map.svg)
 
 记住三个数字，它们在整门课里都不会变：
 

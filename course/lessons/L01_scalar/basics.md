@@ -30,7 +30,7 @@ L01 结束后，你会拥有一颗**自己写的 RV32I 单周期 RISC-V 核心**
 流水线机器会把这 5 件事分给不同的周期、不同的硬件单元（上游 CoralNPU 就是这么做的）；
 单周期机器则在**同一个周期内**用一条组合逻辑长链全部做完。
 
-![单周期数据通路](../diagrams/single_cycle_datapath.svg)
+![单周期数据通路](diagrams/single_cycle_datapath.svg)
 
 图里的每个方框在 L01 骨架里都有对应的代码位置：
 
@@ -128,7 +128,7 @@ L01 的测试 4（递归求和）会同时用到两者。
 
 ## 3.2 六种指令格式
 
-![RV32I 指令格式](../diagrams/rv32i_formats.svg)
+![RV32I 指令格式](diagrams/rv32i_formats.svg)
 
 位域被打散（尤其是 B 型和 J 型）不是设计缺陷，而是为了让所有指令的
 `rs1` / `rs2` / `funct3` 落在相同位置，译码器可以并行读取。
@@ -178,7 +178,7 @@ L01 的测试 4（递归求和）会同时用到两者。
 
 ## 4.1 地址映射
 
-![内存映射](../diagrams/memory_map.svg)
+![内存映射](diagrams/memory_map.svg)
 
 和上游默认配置保持一致：ITCM 在 `0x0000_0000`（8 KB，指令与只读数据），
 DTCM 在 `0x0001_0000`（32 KB，数据与栈）。
@@ -216,7 +216,7 @@ main:
 
 ## 4.4 从 C 到你的核
 
-![工具链流程](../diagrams/toolchain_flow.svg)
+![工具链流程](diagrams/toolchain_flow.svg)
 
 编译与链接由 `course/tools/build_program.py` 完成，它做的事都可以手工复现：
 
@@ -235,7 +235,7 @@ riscv64-unknown-elf-gcc -march=rv32i -mabi=ilp32 -nostdlib -nostartfiles \
 
 # 第 5 章　验收方式：为什么是 trace 对拍
 
-![对拍](../diagrams/trace_compare.svg)
+![对拍](diagrams/trace_compare.svg)
 
 课程检查器会做两件事：
 
