@@ -65,16 +65,27 @@ STAGES: list[Stage] = [
         ready=True,
     ),
     Stage(
-        code="L03",
-        title="流水线、冒险、M 扩展、CSR 与异常",
-        directory="L03_pipeline",
-        summary="把单周期改成 4 级流水，加记分板、退休缓冲、乘除法器和 Zicsr。",
+        code="L03A",
+        title="流水线与冒险",
+        directory="L03a_pipeline",
+        summary="把单周期核改成 5 级流水线：旁路、load-use 停顿、分支冲刷、多周期访存冻结。",
         anchors=[
+            "doc/microarch/microarch.md",
             "doc/microarch/dispatch.md",
+        ],
+        ready=True,
+    ),
+    Stage(
+        code="L03B",
+        title="M 扩展、CSR 与异常",
+        directory="L03b_mdu_csr",
+        summary="加乘除法器（M 扩展）、CSR 文件与 Zicsr，以及 ecall/非法指令的异常进入与返回。",
+        anchors=[
             "doc/microarch/mlu.md",
             "hdl/chisel/src/coralnpu/RetirementBuffer.scala",
             "hdl/chisel/src/coralnpu/scalar/FaultManager.scala",
         ],
+        ready=False,
     ),
     Stage(
         code="L04",

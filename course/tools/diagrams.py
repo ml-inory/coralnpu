@@ -554,6 +554,72 @@ def lsu_division() -> str:
     return svg(900, 600, "\n".join(b), "分工的边界：核心只管“发命令 + 等 + 提交”，字节级别的搬运全部由 LSU 负责")
 
 
+def pipeline_stages() -> str:
+    b = []
+    b.append(text(24, 32, "5 级流水线：每条指令依次经过五个阶段", size=18, bold=True))
+    stages = [
+        ("IF", "取指\npc → imem", LBLUE, BLUE, "PC 寄存器"),
+        ("ID", "译码 + 读寄存器堆\nimm 生成", LGREEN, GREEN, "IF/ID"),
+        ("EX", "ALU + 分支解析\n地址计算", LAMBER, AMBER, "ID/EX"),
+        ("MEM", "访存（交给 LSU）", LPURPLE, PURPLE, "EX/MEM"),
+        ("WB", "写回 + 退休(trace)", GREY, MUTED, "MEM/WB"),
+    ]
+    x = 30
+    for i, (name, desc, fill, stroke, reg) in enumerate(stages):
+        b.append(box(x, 70, 150, 120, "", fill=fill, stroke=stroke))
+        b.append(text(x + 75, 102, name, size=20, anchor="middle", bold=True, fill=stroke))
+        for j, line in enumerate(desc.split("\n")):
+            b.append(text(x + 75, 128 + j * 20, line, size=11.5, anchor="middle", fill=MUTED))
+        if i < len(stages) - 1:
+            b.append(arrow(x + 154, 130, x + 194, 130))
+        x += 198
+    # 阶段寄存器标注
+    x = 30
+    regs = ["", "IF/ID", "ID/EX", "EX/MEM", "MEM/WB"]
+    for i, reg in enumerate(regs):
+        if reg:
+            b.append(text(x + 75, 214, reg, size=11.5, anchor="middle", fill=MUTED))
+            b.append(text(x + 75, 232, "↑ 阶段寄存器", size=10.5, anchor="middle", fill=MUTED))
+        x += 198
+    b.append(text(24, 272, "三类冒险发生在哪里：", size=14, bold=True))
+    for i, line in enumerate([
+        "数据冒险（EX 要用前一条的结果）→ 旁路（EX/MEM→EX、MEM/WB→EX）+ WB→ID 写穿",
+        "load-use（EX 是 load，ID 马上要用）→ 冻结 IF/ID 一拍 + 给 ID/EX 插气泡",
+        "控制冒险（EX 才解析分支/跳转）→ 冲刷 IF/ID 与 ID/EX，PC 重定向到目标",
+        "结构冒险（LSU 忙）→ 整条流水线冻结（含 MEM/WB，否则旁路来源会跑掉）",
+    ]):
+        b.append(text(40, 298 + i * 24, "• " + line, size=12))
+    return svg(1080, 400, "\n".join(b), "每级之间都有一个阶段寄存器；冒险处理就是决定“谁冻结、谁插气泡、谁被冲刷”")
+
+
+def hazard_timeline() -> str:
+    b = []
+    b.append(text(24, 32, "两种停顿与一次冲刷：周期级时序", size=18, bold=True))
+    rows = [
+        ("load-use 停顿", ["IF: lw", "ID: add", "EX: --", "MEM: lw", "WB: --"], BLUE),
+        ("", ["IF: add", "ID: --", "EX: lw", "MEM: --", "WB: --"], MUTED),
+        ("", ["IF: ...", "ID: add", "EX: --", "MEM: lw", "WB: --"], MUTED),
+        ("分支冲刷", ["IF: bne", "ID: X", "EX: X", "MEM: --", "WB: --"], AMBER),
+        ("", ["IF: 目标", "ID: --", "EX: bne", "MEM: --", "WB: --"], MUTED),
+        ("", ["IF: 目标+4", "ID: 目标", "EX: --", "MEM: bne", "WB: --"], MUTED),
+    ]
+    y = 70
+    for label, cells, stroke in rows:
+        if label:
+            b.append(text(24, y + 20, label, size=13, bold=True, fill=stroke))
+        x = 190
+        for cell in cells:
+            fill = "#ffffff" if "X" not in cell and "--" not in cell else GREY
+            if "X" in cell:
+                fill = LAMBER
+            b.append(box(x, y, 150, 34, cell, fill=fill, stroke=stroke, size=11.5, radius=4))
+            x += 158
+        y += 42
+    b.append(text(24, y + 20, "X = 被冲刷的错路指令（必须不写寄存器、不产生 trace）；-- = 气泡（有效位为 0）", size=12, fill=MUTED))
+    b.append(text(24, y + 44, "关键：气泡的控制位必须清零，否则它会带着上一条指令的控制信号去写寄存器堆。", size=12, fill=MUTED))
+    return svg(1010, y + 70, "\n".join(b))
+
+
 DIAGRAMS = {
     "learning_loop": learning_loop,
     "repo_map": repo_map,
@@ -569,6 +635,8 @@ DIAGRAMS = {
     "lsu_fsm": lsu_fsm,
     "unaligned_split": unaligned_split,
     "lsu_division": lsu_division,
+    "pipeline_stages": pipeline_stages,
+    "hazard_timeline": hazard_timeline,
 }
 
 # 每张图给哪些课程用
@@ -577,6 +645,7 @@ USED_BY = {
     "L01_scalar": ["rv32i_formats", "single_cycle_datapath", "trace_compare", "memory_map", "toolchain_flow"],
     "P0_prep": ["comb_vs_seq", "clock_wave", "c_to_machine", "memory_map", "single_cycle_datapath"],
     "L02_lsu": ["lsu_fsm", "unaligned_split", "lsu_division", "memory_map"],
+    "L03a_pipeline": ["pipeline_stages", "hazard_timeline"],
 }
 
 def generate(only: list[str] | None = None, verbose: bool = True) -> list[str]:

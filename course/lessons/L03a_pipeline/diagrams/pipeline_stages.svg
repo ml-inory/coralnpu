@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="400" viewBox="0 0 1080 400">
+<defs><marker id="arrowhead" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#1f2933"/></marker></defs>
+<rect width="1080" height="400" fill="#ffffff"/>
+<text x="24" y="32" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="18" font-weight="700" fill="#1f2933" text-anchor="start"><tspan x="24" dy="0">5 级流水线：每条指令依次经过五个阶段</tspan></text>
+<rect x="30" y="70" width="150" height="120" rx="8" ry="8" fill="#e8effd" stroke="#1d4ed8" stroke-width="1.6"/>
+<text x="105" y="102" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="20" font-weight="700" fill="#1d4ed8" text-anchor="middle"><tspan x="105" dy="0">IF</tspan></text>
+<text x="105" y="128" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="13" font-weight="400" fill="#5b6b7b" text-anchor="middle"><tspan x="105" dy="0">取指</tspan></text>
+<text x="105" y="148" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="13" font-weight="400" fill="#5b6b7b" text-anchor="middle"><tspan x="105" dy="0">pc → imem</tspan></text>
+<path d="M 184 130 L 224 130" fill="none" stroke="#1f2933" stroke-width="1.8" marker-end="url(#arrowhead)"/>
+<rect x="228" y="70" width="150" height="120" rx="8" ry="8" fill="#e2f4f1" stroke="#0f766e" stroke-width="1.6"/>
+<text x="303" y="102" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="20" font-weight="700" fill="#0f766e" text-anchor="middle"><tspan x="303" dy="0">ID</tspan></text>
+<text x="303" y="128" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="13" font-weight="400" fill="#5b6b7b" text-anchor="middle"><tspan x="303" dy="0">译码 + 读寄存器堆</tspan></text>
+<text x="303" y="148" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="13" font-weight="400" fill="#5b6b7b" text-anchor="middle"><tspan x="303" dy="0">imm 生成</tspan></text>
+<path d="M 382 130 L 422 130" fill="none" stroke="#1f2933" stroke-width="1.8" marker-end="url(#arrowhead)"/>
+<rect x="426" y="70" width="150" height="120" rx="8" ry="8" fill="#fdf1df" stroke="#b45309" stroke-width="1.6"/>
+<text x="501" y="102" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="20" font-weight="700" fill="#b45309" text-anchor="middle"><tspan x="501" dy="0">EX</tspan></text>
+<text x="501" y="128" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="13" font-weight="400" fill="#5b6b7b" text-anchor="middle"><tspan x="501" dy="0">ALU + 分支解析</tspan></text>
+<text x="501" y="148" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="13" font-weight="400" fill="#5b6b7b" text-anchor="middle"><tspan x="501" dy="0">地址计算</tspan></text>
+<path d="M 580 130 L 620 130" fill="none" stroke="#1f2933" stroke-width="1.8" marker-end="url(#arrowhead)"/>
+<rect x="624" y="70" width="150" height="120" rx="8" ry="8" fill="#f0e9fe" stroke="#6d28d9" stroke-width="1.6"/>
+<text x="699" y="102" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="20" font-weight="700" fill="#6d28d9" text-anchor="middle"><tspan x="699" dy="0">MEM</tspan></text>
+<text x="699" y="128" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="13" font-weight="400" fill="#5b6b7b" text-anchor="middle"><tspan x="699" dy="0">访存（交给 LSU）</tspan></text>
+<path d="M 778 130 L 818 130" fill="none" stroke="#1f2933" stroke-width="1.8" marker-end="url(#arrowhead)"/>
+<rect x="822" y="70" width="150" height="120" rx="8" ry="8" fill="#f3f5f7" stroke="#5b6b7b" stroke-width="1.6"/>
+<text x="897" y="102" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="20" font-weight="700" fill="#5b6b7b" text-anchor="middle"><tspan x="897" dy="0">WB</tspan></text>
+<text x="897" y="128" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="13" font-weight="400" fill="#5b6b7b" text-anchor="middle"><tspan x="897" dy="0">写回 + 退休(trace)</tspan></text>
+<text x="303" y="214" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="13" font-weight="400" fill="#5b6b7b" text-anchor="middle"><tspan x="303" dy="0">IF/ID</tspan></text>
+<text x="303" y="232" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="13" font-weight="400" fill="#5b6b7b" text-anchor="middle"><tspan x="303" dy="0">↑ 阶段寄存器</tspan></text>
+<text x="501" y="214" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="13" font-weight="400" fill="#5b6b7b" text-anchor="middle"><tspan x="501" dy="0">ID/EX</tspan></text>
+<text x="501" y="232" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="13" font-weight="400" fill="#5b6b7b" text-anchor="middle"><tspan x="501" dy="0">↑ 阶段寄存器</tspan></text>
+<text x="699" y="214" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="13" font-weight="400" fill="#5b6b7b" text-anchor="middle"><tspan x="699" dy="0">EX/MEM</tspan></text>
+<text x="699" y="232" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="13" font-weight="400" fill="#5b6b7b" text-anchor="middle"><tspan x="699" dy="0">↑ 阶段寄存器</tspan></text>
+<text x="897" y="214" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="13" font-weight="400" fill="#5b6b7b" text-anchor="middle"><tspan x="897" dy="0">MEM/WB</tspan></text>
+<text x="897" y="232" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="13" font-weight="400" fill="#5b6b7b" text-anchor="middle"><tspan x="897" dy="0">↑ 阶段寄存器</tspan></text>
+<text x="24" y="272" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="14" font-weight="700" fill="#1f2933" text-anchor="start"><tspan x="24" dy="0">三类冒险发生在哪里：</tspan></text>
+<text x="40" y="298" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start"><tspan x="40" dy="0">• 数据冒险（EX 要用前一条的结果）→ 旁路（EX/MEM→EX、MEM/WB→EX）+ WB→ID 写穿</tspan></text>
+<text x="40" y="322" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start"><tspan x="40" dy="0">• load-use（EX 是 load，ID 马上要用）→ 冻结 IF/ID 一拍 + 给 ID/EX 插气泡</tspan></text>
+<text x="40" y="346" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start"><tspan x="40" dy="0">• 控制冒险（EX 才解析分支/跳转）→ 冲刷 IF/ID 与 ID/EX，PC 重定向到目标</tspan></text>
+<text x="40" y="370" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start"><tspan x="40" dy="0">• 结构冒险（LSU 忙）→ 整条流水线冻结（含 MEM/WB，否则旁路来源会跑掉）</tspan></text>
+<text x="24" y="386" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="13" font-weight="400" fill="#5b6b7b" text-anchor="start"><tspan x="24" dy="0">每级之间都有一个阶段寄存器；冒险处理就是决定“谁冻结、谁插气泡、谁被冲刷”</tspan></text>
+</svg>
