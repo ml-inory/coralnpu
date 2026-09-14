@@ -111,8 +111,8 @@ module cpu_core (
   //   寄存器堆在本拍写、ID 在本拍读，如果直接读 regs[]，读到的是"写之前"的值。
   //   提示：若 WB 级的指令要写 rs1/rs2 且写的是同一个寄存器，就用 wb_data 顶上。
   logic id_bypass_rs1, id_bypass_rs2;
-  assign id_bypass_rs1 = 1'b0;   // TODO
-  assign id_bypass_rs2 = 1'b0;   // TODO
+  assign id_bypass_rs1 = wb_valid && wb_reg_we && (rs1_of(id_inst) != 5'd0) && (rs1_of(id_inst) == rd_of(wb_inst));   // TODO
+  assign id_bypass_rs2 = wb_valid && wb_reg_we && (rs2_of(id_inst) != 5'd0) && (rs2_of(id_inst) == rd_of(wb_inst));   // TODO
   assign id_rs1_val = (rs1_of(id_inst) == 5'd0) ? 32'h0 :
                       id_bypass_rs1 ? wb_data : regs[rs1_of(id_inst)];
   assign id_rs2_val = (rs2_of(id_inst) == 5'd0) ? 32'h0 :
@@ -139,7 +139,20 @@ module cpu_core (
   always_comb begin
     fwd_a = ex_rs1_val;
     fwd_b = ex_rs2_val;
-    // TODO
+    // MEM级
+    if (mem_valid && mem_reg_we && !mem_is_load && rd_of(mem_inst) != 0) begin
+      if (rd_of(mem_inst) == rs1_of(ex_inst))
+        fwd_a = mem_wb_value;
+      if (rd_of(mem_inst) == rs2_of(ex_inst))
+        fwd_b = mem_wb_value;
+    end
+    // WB级
+    else if (wb_valid && wb_reg_we && rd_of(wb_inst) != 0) begin
+      if (rd_of(wb_inst) == rs1_of(ex_inst))
+        fwd_a = wb_data;
+      if (rd_of(wb_inst) == rs2_of(ex_inst))
+        fwd_b = wb_data;
+    end
   end
 
   always_comb begin
@@ -228,7 +241,7 @@ module cpu_core (
 
   // TODO 4：什么时候需要冲刷/重定向？
   //   分支跳成功、jal、jalr、停机指令，都意味着"接下来取的指令是错的"。
-  assign ex_redirect = 1'b0;   // TODO
+  assign ex_redirect = ex_valid & (ex_br_taken | ex_is_jal | ex_is_jalr | is_halt_of(ex_inst));   // TODO
 
   assign ex_wb_value = (ex_is_jal | ex_is_jalr) ? ex_pc_plus4 :
                        (ex_op == 7'b0110111)    ? imm_u_of(ex_inst) : alu_y;
@@ -269,7 +282,9 @@ module cpu_core (
   // TODO 3：load-use 停顿。
   //   条件：EX 级是一条 load，而 ID 级的指令马上要用它的结果（rs1 或 rs2 命中）。
   logic load_use_stall;
-  assign load_use_stall = 1'b0;   // TODO
+  assign load_use_stall = (rd_of(ex_inst) != 0) & 
+    (rs1_of(id_inst) == rd_of(ex_inst) || rs2_of(id_inst) == rd_of(ex_inst)) & 
+    (ex_is_load);   // TODO
 
   logic stall_all, stall_bubble;
   assign stall_all    = lsu_wait;            // TODO 6：等 LSU 时整条流水线冻结
@@ -336,9 +351,9 @@ module cpu_core (
       mem_alu_y    <= ex_imm_is_addr ? alu_y : ex_wb_value;
       mem_rs2_val  <= fwd_b;
       // TODO 5：控制位必须与 ex_valid 相与，否则气泡会带着残留的控制信号写寄存器堆
-      mem_reg_we   <= ex_reg_we;
-      mem_is_load  <= ex_is_load;
-      mem_is_store <= ex_is_store;
+      mem_reg_we   <= ex_reg_we & ex_valid;
+      mem_is_load  <= ex_is_load & ex_valid;
+      mem_is_store <= ex_is_store & ex_valid;
       mem_valid    <= ex_valid;
 
       // ---------------- MEM/WB
