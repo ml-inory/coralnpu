@@ -24,6 +24,25 @@ MASK32 = 0xFFFF_FFFF
 INSTR_MPAUSE = 0x0800_0073
 INSTR_EBREAK = 0x0010_0073
 INSTR_ECALL = 0x0000_0073
+INSTR_MRET = 0x3020_0073
+
+# CSR 地址（L03b 实现的最小集合）
+CSR_MSTATUS  = 0x300
+CSR_MISA     = 0x301
+CSR_MTVEC    = 0x305
+CSR_MSCRATCH = 0x340
+CSR_MEPC     = 0x341
+CSR_MCAUSE   = 0x342
+CSR_MTVAL    = 0x343
+CSR_MHARTID  = 0xF14
+
+# 异常原因码（mcause）
+CAUSE_ILLEGAL_INSTRUCTION = 2
+CAUSE_BREAKPOINT          = 3
+CAUSE_ECALL_FROM_M        = 11
+
+# misa：RV32 + I(bit8) + M(bit12)
+MISA_VALUE = 0x4000_1100
 
 
 class CoreFault(Exception):
@@ -72,6 +91,14 @@ class Core:
     halt_reason: str = ""
     cycles: int = 0
     retire_count: int = 0
+    # L03b：最小 CSR 集合（复位值见 mstatus/mtvec/... 的定义）
+    csr: dict = field(default_factory=lambda: {
+        CSR_MSTATUS: 0, CSR_MISA: MISA_VALUE, CSR_MTVEC: 0, CSR_MSCRATCH: 0,
+        CSR_MEPC: 0, CSR_MCAUSE: 0, CSR_MTVAL: 0, CSR_MHARTID: 0,
+    })
+    # 异常/返回要把 PC 重定向，而不是走顺序的 PC+4（step() 末尾统一处理）
+    trap_target: int | None = None
+    ret_target: int | None = None
 
     def __post_init__(self) -> None:
         if not self.itcm:
@@ -146,6 +173,55 @@ class Core:
         return int.from_bytes(self.itcm[off : off + 4], "little")
 
     # ---------------------------------------------------------------- 执行
+    def csr_read(self, addr: int) -> int:
+        """读 CSR。未实现的地址按 0 处理（本课的简化约定）。"""
+        return self.csr.get(addr, 0)
+
+    def csr_write(self, addr: int, value: int) -> None:
+        """写 CSR。misa / mhartid 是只读的；未实现地址忽略写入。"""
+        if addr in (CSR_MISA, CSR_MHARTID):
+            return
+        if addr in self.csr:
+            self.csr[addr] = u32(value)
+
+    def take_trap(self, cause: int, epc: int) -> None:
+        """进入异常：记录 mepc/mcause，跳到 mtvec。"""
+        self.csr[CSR_MEPC] = u32(epc)
+        self.csr[CSR_MCAUSE] = u32(cause)
+        self.csr[CSR_MTVAL] = 0
+        self.trap_target = u32(self.csr_read(CSR_MTVEC))
+
+    def mdu_exec(self, funct3: int, a: int, b: int) -> int:
+        """M 扩展的 8 条指令（注意有符号/无符号与边界情况）。"""
+        sa, sb = s32(a), s32(b)
+        if funct3 == 0x0:      # mul：低 32 位（有无符号相同）
+            return u32(a * b)
+        if funct3 == 0x1:      # mulh：有符号 × 有符号的高 32 位
+            return u32((sa * sb) >> 32)
+        if funct3 == 0x2:      # mulhsu：有符号 × 无符号
+            return u32((sa * b) >> 32)
+        if funct3 == 0x3:      # mulhu：无符号 × 无符号
+            return u32((a * b) >> 32)
+        if funct3 == 0x4:      # div：除零 → -1；INT_MIN / -1 → INT_MIN
+            if b == 0:
+                return MASK32
+            if sa == -(1 << 31) and sb == -1:
+                return 0x8000_0000
+            q = abs(sa) // abs(sb)
+            q = -q if (sa < 0) != (sb < 0) else q
+            return u32(q)
+        if funct3 == 0x5:      # divu：除零 → 全 1
+            return MASK32 if b == 0 else u32(a // b)
+        if funct3 == 0x6:      # rem：除零 → 被除数；溢出 → 0
+            if b == 0:
+                return u32(a)
+            if sa == -(1 << 31) and sb == -1:
+                return 0
+            r = abs(sa) % abs(sb)
+            return u32(-r if sa < 0 else r)
+        # remu
+        return u32(a) if b == 0 else u32(a % b)
+
     def step(self) -> Retire:
         if self.halted:
             raise CoreFault("核心已停机")
@@ -254,9 +330,10 @@ class Core:
                 raise CoreFault(f"非法 OP-IMM funct3={f3}")
             rd = (inst >> 7) & 0x1F
         elif opcode == 0x33:  # OP
-            if f7 == 0x01:  # M 扩展留给 L03
-                raise CoreFault("M 扩展（mul/div）在 L03 才实现")
-            if f3 == 0x0:
+            if f7 == 0x01:  # M 扩展（L03b）
+                rd = (inst >> 7) & 0x1F
+                wdata = self.mdu_exec(f3, a, b)
+            elif f3 == 0x0:
                 wdata = u32(a - b) if f7 & 0x20 else u32(a + b)
             elif f3 == 0x1:
                 wdata = u32(a << (b & 0x1F))
@@ -280,14 +357,41 @@ class Core:
         elif opcode == 0x73:  # SYSTEM
             if inst == INSTR_MPAUSE:
                 self.halted, self.halt_reason = True, "mpause"
-            elif inst == INSTR_EBREAK:
-                self.halted, self.halt_reason = True, "ebreak"
-            elif inst == INSTR_ECALL:
-                self.halted, self.halt_reason = True, "ecall"
+            elif f3 == 0x0 and inst == INSTR_EBREAK:
+                # ebreak：断点异常（mcause=3）
+                self.take_trap(CAUSE_BREAKPOINT, pc)
+            elif f3 == 0x0 and inst == INSTR_ECALL:
+                # ecall：来自 M 模式的环境调用（mcause=11）
+                self.take_trap(CAUSE_ECALL_FROM_M, pc)
+            elif f3 == 0x0 and inst == INSTR_MRET:
+                # mret：返回 mepc
+                self.ret_target = u32(self.csr_read(CSR_MEPC))
+            elif f3 != 0x0:
+                # Zicsr：csrrw/csrrs/csrrc + 立即数形式
+                csr_addr = (inst >> 20) & 0xFFF
+                rd = (inst >> 7) & 0x1F
+                rs1_field = (inst >> 15) & 0x1F
+                old = self.csr_read(csr_addr)
+                if f3 >= 0x5:                     # 立即数形式：rs1 字段是 5 位无符号数
+                    src = rs1_field
+                else:
+                    src = a
+                if f3 == 0x1 or f3 == 0x5:
+                    new = src                     # csrrw / csrrwi：总是写
+                elif f3 == 0x2 or f3 == 0x6:
+                    new = old | src               # csrrs / csrrsi
+                else:
+                    new = old & ~src              # csrrc / csrrci
+                # set/clear 且 rs1=x0 时不写（避免读副作用的规范要求）
+                if not ((f3 in (0x2, 0x3, 0x6, 0x7)) and rs1_field == 0):
+                    self.csr_write(csr_addr, new)
+                wdata = old
             else:
-                raise CoreFault(f"未实现的 SYSTEM 指令 0x{inst:08x}（CSR 属于 L03）")
+                # 其它 SYSTEM 编码：非法指令异常
+                self.take_trap(CAUSE_ILLEGAL_INSTRUCTION, pc)
         else:
-            raise CoreFault(f"非法指令 0x{inst:08x} @ pc=0x{pc:08x} opcode=0x{opcode:02x}")
+            # 未实现的 opcode：非法指令异常（mcause=2），跳到 mtvec
+            self.take_trap(CAUSE_ILLEGAL_INSTRUCTION, pc)
 
         if rd != 0:
             write_reg(rd, wdata)
@@ -295,7 +399,14 @@ class Core:
             # rd=0 表示"这条指令不写寄存器"，trace 里统一记成 0，便于和 RTL 对拍
             wdata = 0
         self.regs[0] = 0
-        self.pc = next_pc
+        if self.trap_target is not None:
+            self.pc = self.trap_target
+            self.trap_target = None
+        elif self.ret_target is not None:
+            self.pc = self.ret_target
+            self.ret_target = None
+        else:
+            self.pc = next_pc
         self.cycles += 1
         self.retire_count += 1
         return Retire(pc=pc, inst=inst, rd=rd, wdata=wdata,

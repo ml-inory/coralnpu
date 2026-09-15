@@ -79,13 +79,13 @@ STAGES: list[Stage] = [
         code="L03B",
         title="M 扩展、CSR 与异常",
         directory="L03b_mdu_csr",
-        summary="加乘除法器（M 扩展）、CSR 文件与 Zicsr，以及 ecall/非法指令的异常进入与返回。",
+        summary="实现乘除法器（M 扩展）与最小 CSR 文件，跑通 ecall/非法指令的异常进入与 mret 返回。",
         anchors=[
             "doc/microarch/mlu.md",
             "hdl/chisel/src/coralnpu/RetirementBuffer.scala",
             "hdl/chisel/src/coralnpu/scalar/FaultManager.scala",
         ],
-        ready=False,
+        ready=True,
     ),
     Stage(
         code="L04",

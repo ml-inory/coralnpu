@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1040" height="490" viewBox="0 0 1040 490">
+<defs><marker id="arrowhead" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#1f2933"/></marker></defs>
+<rect width="1040" height="490" fill="#ffffff"/>
+<text x="24" y="32" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="18" font-weight="700" fill="#1f2933" text-anchor="start"><tspan x="24" dy="0">异常的进入与返回：ecall → 处理程序 → mret</tspan></text>
+<rect x="40" y="70" width="200" height="74" rx="8" ry="8" fill="#e8effd" stroke="#1d4ed8" stroke-width="1.6"/><text x="140.0" y="94.5" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="middle"><tspan x="140.0" dy="0">正常执行</tspan><tspan x="140.0" dy="17.55">……</tspan><tspan x="140.0" dy="17.55">ecall / 非法指令</tspan></text>
+<rect x="300" y="70" width="240" height="74" rx="8" ry="8" fill="#fdf1df" stroke="#b45309" stroke-width="1.6"/><text x="420.0" y="111.55" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="13" font-weight="700" fill="#1f2933" text-anchor="middle"><tspan x="420.0" dy="0">硬件：进入异常</tspan></text>
+<rect x="600" y="70" width="200" height="74" rx="8" ry="8" fill="#e2f4f1" stroke="#0f766e" stroke-width="1.6"/><text x="700.0" y="102.9375" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="middle"><tspan x="700.0" dy="0">处理程序</tspan><tspan x="700.0" dy="17.55">（mtvec 处的代码）</tspan></text>
+<rect x="860" y="70" width="150" height="74" rx="8" ry="8" fill="#f0e9fe" stroke="#6d28d9" stroke-width="1.6"/><text x="935.0" y="102.9375" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="middle"><tspan x="935.0" dy="0">mret</tspan><tspan x="935.0" dy="17.55">返回 mepc</tspan></text>
+<path d="M 244 107 L 296 107" fill="none" stroke="#1f2933" stroke-width="1.8" marker-end="url(#arrowhead)"/>
+<path d="M 544 107 L 596 107" fill="none" stroke="#1f2933" stroke-width="1.8" marker-end="url(#arrowhead)"/>
+<path d="M 804 107 L 856 107" fill="none" stroke="#1f2933" stroke-width="1.8" marker-end="url(#arrowhead)"/>
+<text x="316" y="164" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start"><tspan x="316" dy="0">• mepc   ← 触发异常的指令地址</tspan></text>
+<text x="316" y="186" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start"><tspan x="316" dy="0">• mcause ← 异常原因（ecall=11 / 非法=2 / ebreak=3）</tspan></text>
+<text x="316" y="208" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start"><tspan x="316" dy="0">• PC     ← mtvec（并冲刷错路指令）</tspan></text>
+<text x="616" y="164" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start"><tspan x="616" dy="0">读 mepc/mcause 做处理；</tspan></text>
+<text x="616" y="186" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start"><tspan x="616" dy="0">把 mepc += 4 跳过触发指令，</tspan></text>
+<text x="616" y="208" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start"><tspan x="616" dy="0">然后 mret。</tspan></text>
+<path d="M 935 144 L 935 250" fill="none" stroke="#6d28d9" stroke-width="1.8" marker-end="url(#arrowhead)"/>
+<polyline points="935,250 140,250 140,148" fill="none" stroke="#6d28d9" stroke-width="1.8" marker-end="url(#arrowhead)"/>
+<text x="560" y="242" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="13" font-weight="400" fill="#5b6b7b" text-anchor="start"><tspan x="560" dy="0">返回到「下一条指令」继续执行（前提是处理程序改过 mepc）</tspan></text>
+<text x="24" y="300" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="14" font-weight="700" fill="#1f2933" text-anchor="start"><tspan x="24" dy="0">本课实现的最小 CSR 集合</tspan></text>
+<text x="40" y="326" font-family="'Noto Sans Mono CJK SC','DejaVu Sans Mono',monospace" font-size="13" font-weight="700" fill="#1f2933" text-anchor="start"><tspan x="40" dy="0">0x300 mstatus</tspan></text>
+<text x="230" y="326" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="13" font-weight="400" fill="#5b6b7b" text-anchor="start"><tspan x="230" dy="0">读写</tspan></text>
+<text x="300" y="326" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="13" font-weight="400" fill="#5b6b7b" text-anchor="start"><tspan x="300" dy="0">机器状态（本课当普通寄存器）</tspan></text>
+<text x="40" y="350" font-family="'Noto Sans Mono CJK SC','DejaVu Sans Mono',monospace" font-size="13" font-weight="700" fill="#1f2933" text-anchor="start"><tspan x="40" dy="0">0x301 misa</tspan></text>
+<text x="230" y="350" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="13" font-weight="400" fill="#5b6b7b" text-anchor="start"><tspan x="230" dy="0">只读</tspan></text>
+<text x="300" y="350" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="13" font-weight="400" fill="#5b6b7b" text-anchor="start"><tspan x="300" dy="0">0x4000_1100 = RV32 + I + M</tspan></text>
+<text x="40" y="374" font-family="'Noto Sans Mono CJK SC','DejaVu Sans Mono',monospace" font-size="13" font-weight="700" fill="#1f2933" text-anchor="start"><tspan x="40" dy="0">0x305 mtvec</tspan></text>
+<text x="230" y="374" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="13" font-weight="400" fill="#5b6b7b" text-anchor="start"><tspan x="230" dy="0">读写</tspan></text>
+<text x="300" y="374" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="13" font-weight="400" fill="#5b6b7b" text-anchor="start"><tspan x="300" dy="0">异常入口地址</tspan></text>
+<text x="40" y="398" font-family="'Noto Sans Mono CJK SC','DejaVu Sans Mono',monospace" font-size="13" font-weight="700" fill="#1f2933" text-anchor="start"><tspan x="40" dy="0">0x340 mscratch</tspan></text>
+<text x="230" y="398" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="13" font-weight="400" fill="#5b6b7b" text-anchor="start"><tspan x="230" dy="0">读写</tspan></text>
+<text x="300" y="398" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="13" font-weight="400" fill="#5b6b7b" text-anchor="start"><tspan x="300" dy="0">给处理程序暂存数据</tspan></text>
+<text x="40" y="422" font-family="'Noto Sans Mono CJK SC','DejaVu Sans Mono',monospace" font-size="13" font-weight="700" fill="#1f2933" text-anchor="start"><tspan x="40" dy="0">0x341 mepc</tspan></text>
+<text x="230" y="422" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="13" font-weight="400" fill="#5b6b7b" text-anchor="start"><tspan x="230" dy="0">读写</tspan></text>
+<text x="300" y="422" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="13" font-weight="400" fill="#5b6b7b" text-anchor="start"><tspan x="300" dy="0">触发异常的指令地址</tspan></text>
+<text x="40" y="446" font-family="'Noto Sans Mono CJK SC','DejaVu Sans Mono',monospace" font-size="13" font-weight="700" fill="#1f2933" text-anchor="start"><tspan x="40" dy="0">0x342 mcause</tspan></text>
+<text x="230" y="446" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="13" font-weight="400" fill="#5b6b7b" text-anchor="start"><tspan x="230" dy="0">读写</tspan></text>
+<text x="300" y="446" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="13" font-weight="400" fill="#5b6b7b" text-anchor="start"><tspan x="300" dy="0">异常原因码</tspan></text>
+<text x="24" y="476" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="13" font-weight="400" fill="#5b6b7b" text-anchor="start"><tspan x="24" dy="0">关键细节：mepc 存的是「触发异常的那条指令」，所以处理程序必须自己 +4 才能继续往下跑</tspan></text>
+</svg>

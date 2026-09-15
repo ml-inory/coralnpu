@@ -620,6 +620,50 @@ def hazard_timeline() -> str:
     return svg(1010, y + 70, "\n".join(b))
 
 
+def trap_flow() -> str:
+    b = []
+    b.append(text(24, 32, "异常的进入与返回：ecall → 处理程序 → mret", size=18, bold=True))
+    # 主流程
+    b.append(box(40, 70, 200, 74, "正常执行\n……\necall / 非法指令", fill=LBLUE, stroke=BLUE, size=12.5))
+    b.append(box(300, 70, 240, 74, "硬件：进入异常", fill=LAMBER, stroke=AMBER, size=13, bold=True))
+    b.append(box(600, 70, 200, 74, "处理程序\n（mtvec 处的代码）", fill=LGREEN, stroke=GREEN, size=12.5))
+    b.append(box(860, 70, 150, 74, "mret\n返回 mepc", fill=LPURPLE, stroke=PURPLE, size=12.5))
+    b.append(arrow(244, 107, 296, 107))
+    b.append(arrow(544, 107, 596, 107))
+    b.append(arrow(804, 107, 856, 107))
+    for i, t in enumerate([
+        "mepc   ← 触发异常的指令地址",
+        "mcause ← 异常原因（ecall=11 / 非法=2 / ebreak=3）",
+        "PC     ← mtvec（并冲刷错路指令）",
+    ]):
+        b.append(text(316, 164 + i * 22, "• " + t, size=11.5))
+    b.append(text(616, 164, "读 mepc/mcause 做处理；", size=11.5))
+    b.append(text(616, 186, "把 mepc += 4 跳过触发指令，", size=11.5))
+    b.append(text(616, 208, "然后 mret。", size=11.5))
+    b.append(arrow(935, 144, 935, 250, color=PURPLE))
+    b.append(f'<polyline points="935,250 140,250 140,148" fill="none" stroke="{PURPLE}" '
+             f'stroke-width="1.8" marker-end="url(#arrowhead)"/>')
+    b.append(text(560, 242, "返回到「下一条指令」继续执行（前提是处理程序改过 mepc）", size=11.5, fill=MUTED))
+    # CSR 表
+    b.append(text(24, 300, "本课实现的最小 CSR 集合", size=14, bold=True))
+    rows = [
+        ("0x300 mstatus", "读写", "机器状态（本课当普通寄存器）"),
+        ("0x301 misa", "只读", "0x4000_1100 = RV32 + I + M"),
+        ("0x305 mtvec", "读写", "异常入口地址"),
+        ("0x340 mscratch", "读写", "给处理程序暂存数据"),
+        ("0x341 mepc", "读写", "触发异常的指令地址"),
+        ("0x342 mcause", "读写", "异常原因码"),
+    ]
+    y = 326
+    for name, access, note in rows:
+        b.append(text(40, y, name, size=12, mono=True, bold=True))
+        b.append(text(230, y, access, size=12, fill=MUTED))
+        b.append(text(300, y, note, size=12, fill=MUTED))
+        y += 24
+    return svg(1040, y + 20, "\n".join(b),
+               "关键细节：mepc 存的是「触发异常的那条指令」，所以处理程序必须自己 +4 才能继续往下跑")
+
+
 DIAGRAMS = {
     "learning_loop": learning_loop,
     "repo_map": repo_map,
@@ -637,6 +681,7 @@ DIAGRAMS = {
     "lsu_division": lsu_division,
     "pipeline_stages": pipeline_stages,
     "hazard_timeline": hazard_timeline,
+    "trap_flow": trap_flow,
 }
 
 # 每张图给哪些课程用
@@ -646,6 +691,7 @@ USED_BY = {
     "P0_prep": ["comb_vs_seq", "clock_wave", "c_to_machine", "memory_map", "single_cycle_datapath"],
     "L02_lsu": ["lsu_fsm", "unaligned_split", "lsu_division", "memory_map"],
     "L03a_pipeline": ["pipeline_stages", "hazard_timeline"],
+    "L03b_mdu_csr": ["trap_flow"],
 }
 
 def generate(only: list[str] | None = None, verbose: bool = True) -> list[str]:

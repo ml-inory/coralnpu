@@ -50,12 +50,13 @@ def run(cmd: list[str]) -> None:
         raise SystemExit(proc.returncode)
 
 
-def build_elf(src: str, out_elf: str, linker: str, start: str, opt: str = "-O0") -> None:
+def build_elf(src: str, out_elf: str, linker: str, start: str, opt: str = "-O0",
+              march: str = "rv32i") -> None:
     driver = tool("gcc")
     obj_dir = os.path.join(os.path.dirname(out_elf), "obj")
     os.makedirs(obj_dir, exist_ok=True)
     flags = [
-        "-march=rv32i",
+        f"-march={march}",
         "-mabi=ilp32",
         "-nostdlib",
         "-ffreestanding",
@@ -69,7 +70,8 @@ def build_elf(src: str, out_elf: str, linker: str, start: str, opt: str = "-O0")
         run([driver] + flags + ["-c", path, "-o", obj])
         objs.append(obj)
     run(
-        [driver, "-march=rv32i", "-mabi=ilp32", "-nostdlib", "-nostartfiles", "-T", linker, "-o", out_elf]
+        [driver, f"-march={march}", "-mabi=ilp32", "-nostdlib", "-nostartfiles",
+         "-T", linker, "-o", out_elf]
         + objs
         + ["-lgcc"]
     )
@@ -102,7 +104,7 @@ class BuildResult:
 
 
 def build(src: str, out_dir: str, linker: str | None = None, start: str | None = None,
-          opt: str = "-O0") -> BuildResult:
+          opt: str = "-O0", march: str = "rv32i") -> BuildResult:
     """编译一个源文件并把 ELF 转成 RTL/黄金模型都能装载的镜像。"""
     here = os.path.dirname(os.path.abspath(__file__))
     link_dir = os.path.join(os.path.dirname(here), "lessons", "L01_scalar", "tests", "link")
@@ -112,7 +114,7 @@ def build(src: str, out_dir: str, linker: str | None = None, start: str | None =
     os.makedirs(out_dir, exist_ok=True)
     name = os.path.splitext(os.path.basename(src))[0]
     out_elf = os.path.join(out_dir, name + ".elf")
-    build_elf(src, out_elf, linker, start, opt)
+    build_elf(src, out_elf, linker, start, opt, march)
 
     with open(out_elf, "rb") as f:
         blob = f.read()
@@ -144,9 +146,10 @@ def main() -> int:
     ap.add_argument("--linker", default=None)
     ap.add_argument("--start", default=None)
     ap.add_argument("-O", dest="opt", default="-O0")
+    ap.add_argument("--march", default="rv32i", help="例如 rv32i / rv32im")
     args = ap.parse_args()
 
-    result = build(args.src, args.out_dir, args.linker, args.start, args.opt)
+    result = build(args.src, args.out_dir, args.linker, args.start, args.opt, args.march)
     print(f"生成 {result.elf}")
     print(f"  program.hex  ITCM {result.itcm_words} 个字，入口 0x{result.entry:08x}")
     print("  data.hex     DTCM 初始数据")

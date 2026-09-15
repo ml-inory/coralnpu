@@ -46,3 +46,6 @@ jobs:
 
       - name: L03a reference implementation passes
         run: ./learn check L03a --ref --no-color
+
+      - name: L03b reference implementation passes
+        run: ./learn check L03b --ref --no-color

@@ -87,4 +87,15 @@ def disasm(inst: int) -> str:
         return f"{name} {r[rd]}, {r[rs1]}, {r[rs2]}"
     if opcode == 0x0F:
         return "fence" if f3 == 0 else "fence.i"
+    if opcode == 0x73:
+        # Zicsr / 特权指令（L03b）
+        if inst == 0x3020_0073:
+            return "mret"
+        csr = (inst >> 20) & 0xFFF
+        csr_ops = {1: "csrrw", 2: "csrrs", 3: "csrrc",
+                   5: "csrrwi", 6: "csrrsi", 7: "csrrci"}
+        if f3 in csr_ops:
+            name = csr_ops[f3]
+            src = str(rs1) if f3 >= 5 else r[rs1]
+            return f"{name} {r[rd]}, 0x{csr:03x}, {src}"
     return f".word 0x{inst:08x}"
