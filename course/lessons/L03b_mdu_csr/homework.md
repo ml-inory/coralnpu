@@ -27,6 +27,9 @@
 
 ### mdu.sv
 
+MDU = Multiply-Divide Unit（乘除法单元），负责 M 扩展的 4 条乘法 + 4 条除法指令
+（上游 CoralNPU 把它们拆成 `Mlu.scala` 与 `Dvu.scala`，本课合并成一个模块）。
+
 ```systemverilog
 module mdu (
     input  logic [31:0] a, b,

@@ -2,6 +2,8 @@
 
 ## 提示 1：高位乘法怎么写
 
+（为什么必须"先扩展"：见 基础知识 1.2 ～ 1.5 节，对应 CS:APP 第 2 章 2.2.6 / 2.3.5。）
+
 ```systemverilog
 logic [63:0]        uprod;      assign uprod    = a * b;                    // 无符号×无符号
 logic signed [31:0] sa, sb;     assign sa = a; assign sb = b;

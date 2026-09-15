@@ -48,7 +48,17 @@ module csr_file (
 
   // TODO 1：读端口（组合）——按 raddr 选择，misa/mhartid 返回固定值，其余 0
   always_comb begin
-    rdata = 32'h0;
+    unique case (raddr)
+      CSR_MSTATUS:  rdata = mstatus;
+      CSR_MISA:     rdata = 32'h40001100;
+      CSR_MTVEC:    rdata = mtvec;
+      CSR_MSCRATCH: rdata = mscratch;
+      CSR_MEPC:     rdata = mepc;
+      CSR_MCAUSE:   rdata = mcause;
+      CSR_MTVAL:    rdata = mtval;
+      CSR_MHARTID:  rdata = 0;
+      default:      rdata = 0;
+    endcase
   end
 
   // TODO 2：写端口（时序）——reset 清零；we 时按 waddr 写入；
@@ -63,6 +73,23 @@ module csr_file (
       mtval    <= 32'h0;
     end else begin
       // TODO
+      if (we) begin
+        unique case (waddr)
+          CSR_MSTATUS:  mstatus   = wdata;
+          CSR_MTVEC:    mtvec     = wdata;
+          CSR_MSCRATCH: mscratch  = wdata;
+          CSR_MEPC:     mepc      = wdata;
+          CSR_MCAUSE:   mcause    = wdata;
+          CSR_MTVAL:    mtval     = wdata;
+          default: ;  // 只读寄存器
+        endcase
+      end
+
+      if (trap_en) begin
+        mepc    <= trap_epc;    // 异常指令地址
+        mcause  <= trap_cause;  // 异常原因, 最高位1表示中断，0表示同步异常
+        mtval   <= 32'h0;       // 异常附加信息
+      end
     end
   end
 
