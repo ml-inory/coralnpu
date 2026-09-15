@@ -140,14 +140,14 @@ module cpu_core (
     fwd_a = ex_rs1_val;
     fwd_b = ex_rs2_val;
     // MEM级
-    if (mem_valid && mem_reg_we && !mem_is_load && rd_of(mem_inst) != 0) begin
+    if (mem_valid && mem_reg_we && !mem_is_load && rd_of(mem_inst) != 0 && (rd_of(mem_inst) == rs1_of(ex_inst) || rd_of(mem_inst) == rs2_of(ex_inst))) begin
       if (rd_of(mem_inst) == rs1_of(ex_inst))
         fwd_a = mem_wb_value;
       if (rd_of(mem_inst) == rs2_of(ex_inst))
         fwd_b = mem_wb_value;
     end
     // WB级
-    else if (wb_valid && wb_reg_we && rd_of(wb_inst) != 0) begin
+    else if (wb_valid && wb_reg_we && rd_of(wb_inst) != 0 && (rd_of(wb_inst) == rs1_of(ex_inst) || rd_of(wb_inst) == rs2_of(ex_inst))) begin
       if (rd_of(wb_inst) == rs1_of(ex_inst))
         fwd_a = wb_data;
       if (rd_of(wb_inst) == rs2_of(ex_inst))
@@ -282,7 +282,8 @@ module cpu_core (
   // TODO 3：load-use 停顿。
   //   条件：EX 级是一条 load，而 ID 级的指令马上要用它的结果（rs1 或 rs2 命中）。
   logic load_use_stall;
-  assign load_use_stall = (rd_of(ex_inst) != 0) & 
+  assign load_use_stall = ex_valid &
+    (rd_of(ex_inst) != 0) & 
     (rs1_of(id_inst) == rd_of(ex_inst) || rs2_of(id_inst) == rd_of(ex_inst)) & 
     (ex_is_load);   // TODO
 
