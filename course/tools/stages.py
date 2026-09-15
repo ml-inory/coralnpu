@@ -93,6 +93,7 @@ STAGES: list[Stage] = [
         directory="L04_axi_boot",
         summary="给核心加上 AXI 从/主接口、RESET/PC_START/STATUS CSR，按上游 5 步启动流程跑自己的程序。",
         anchors=["doc/integration_guide.md", "hdl/chisel/src/coralnpu/CoreAxiCSR.scala"],
+        ready=True,
     ),
     Stage(
         code="L05",

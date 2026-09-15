@@ -664,7 +664,161 @@ def trap_flow() -> str:
                "关键细节：mepc 存的是「触发异常的那条指令」，所以处理程序必须自己 +4 才能继续往下跑")
 
 
+def axi_timing() -> str:
+    """AXI 的逐拍时序：读事务、写事务，以及核心侧 valid/ready 的对应关系。"""
+    b = []
+    x0, dx = 205, 56
+    b.append(text(24, 30, "AXI 事务的逐拍时序：握手 = VALID 与 READY 同时为 1 的那一拍",
+                  size=17, bold=True))
+
+    def clk_wave(y, n=8, label="clk"):
+        x, pts = x0, []
+        for _ in range(n):
+            pts += [f"{x},{y+18}", f"{x+dx/2},{y+18}", f"{x+dx/2},{y}", f"{x+dx},{y}"]
+            x += dx
+        b.append(f'<polyline points="{" ".join(pts)}" fill="none" stroke="{BLUE}" stroke-width="1.5"/>')
+        b.append(text(x0 - 14, y + 13, label, size=11.5, mono=True, anchor="end"))
+
+    def sig(y, levels, label, color=INK):
+        pts = []
+        for i, lv in enumerate(levels):
+            yy = y if lv else y + 18
+            pts += [f"{x0 + i*dx},{yy}", f"{x0 + (i+1)*dx},{yy}"]
+        b.append(f'<polyline points="{" ".join(pts)}" fill="none" stroke="{color}" stroke-width="1.8"/>')
+        b.append(text(x0 - 14, y + 13, label, size=11.5, mono=True, anchor="end"))
+
+    def bus(y, c0, c1, label, color=PURPLE, fill=LPURPLE):
+        """数据总线：框宽自动按文字宽度撑开，避免框线穿过文字。"""
+        xa, xb = x0 + c0 * dx, x0 + c1 * dx
+        need = len(label) * 7.2 + 34                      # 中文/ASCII 混排的保守估计
+        if xb - xa < need:
+            mid = (xa + xb) / 2
+            xa, xb = mid - need / 2, mid + need / 2
+        b.append(f'<polyline points="{xa},{y} {xa+9},{y+10} {xb-9},{y+10} {xb},{y} '
+                 f'{xb-9},{y-10} {xa+9},{y-10} {xa},{y}" fill="{fill}" stroke="{color}" stroke-width="1.3"/>')
+        b.append(text((xa + xb) / 2, y + 4, label, size=11, anchor="middle"))
+
+    def mark(cycle, y_top, y_bot, label, label_y=None):
+        """在某个时钟沿画虚线；标注默认写在虚线下方，可显式指定行高错开。"""
+        x = x0 + (cycle + 0.5) * dx
+        b.append(f'<line x1="{x}" y1="{y_top}" x2="{x}" y2="{y_bot}" stroke="{AMBER}" '
+                 f'stroke-width="1.2" stroke-dasharray="4 4"/>')
+        b.append(text(x, label_y if label_y is not None else y_bot + 16,
+                      label, size=11, fill=AMBER, anchor="middle"))
+        return x
+
+    # ---------------- 面板 1：读事务 ----------------
+    y = 60
+    b.append(text(24, y - 14, "① 读事务：AR 送地址，R 送数据（两条通道各自握手）", size=13.5, bold=True))
+    clk_wave(y)
+    sig(y + 44, [0, 1, 1, 1, 0, 0, 0, 0], "ARVALID", BLUE)
+    sig(y + 74, [0, 0, 1, 1, 1, 0, 0, 0], "ARREADY", GREEN)
+    sig(y + 104, [0, 0, 0, 0, 1, 1, 1, 0], "RVALID", BLUE)
+    sig(y + 134, [0, 0, 0, 0, 0, 1, 1, 1], "RREADY", GREEN)
+    bus(y + 172, 4, 6, "RDATA（数据）")
+    mark(2, y - 16, y + 134, "① AR 握手", y + 202)
+    mark(5, y - 16, y + 134, "② R 握手", y + 202)
+
+    # ---------------- 面板 2：写事务 ----------------
+    y = 330
+    b.append(text(24, y - 24, "② 写事务：AW 送地址、W 送数据（两条通道独立），最后 B 回响应", size=13.5, bold=True))
+    clk_wave(y)
+    sig(y + 44, [0, 1, 1, 1, 0, 0, 0, 0], "AWVALID", BLUE)
+    sig(y + 70, [0, 0, 1, 1, 1, 0, 0, 0], "AWREADY", GREEN)
+    sig(y + 96, [0, 1, 1, 1, 1, 0, 0, 0], "WVALID", BLUE)
+    sig(y + 122, [0, 0, 0, 1, 1, 1, 0, 0], "WREADY", GREEN)
+    sig(y + 148, [0, 0, 0, 0, 0, 1, 1, 0], "BVALID", BLUE)
+    sig(y + 174, [0, 0, 0, 0, 0, 0, 1, 1], "BREADY", GREEN)
+    bus(y + 212, 3, 4, "WDATA + WSTRB", AMBER, LAMBER)
+    mark(2, y - 16, y + 174, "① AW 握手", y + 242)
+    mark(3, y - 16, y + 174, "② W 握手", y + 262)
+    mark(6, y - 16, y + 174, "③ B 握手（写完成）", y + 242)
+
+    # ---------------- 面板 3：核心侧 ↔ 主接口 ----------------
+    y = 620
+    b.append(text(24, y - 24, "③ 外壳内部：核心的 valid/ready 被拉长成 AXI 事务", size=13.5, bold=True))
+    clk_wave(y, 8, "core_clk")
+    sig(y + 44, [0, 1, 1, 1, 1, 1, 0, 0], "i_dmem_valid", BLUE)
+    sig(y + 74, [0, 0, 0, 0, 0, 1, 0, 0], "o_dmem_ready", GREEN)
+    b.append(box(x0 - 40, y + 104, 4.6 * dx, 28, "mstate: IDLE → RADDR → RDATA → IDLE",
+                 fill=GREY, size=11.5))
+    mark(5, y - 16, y + 90, "R 到达的那一拍才 ready", y + 152)
+    b.append(text(24, y + 186,
+                  "核心把请求保持到 ready 为止；外壳用 AXI 的多次握手把这段时间填满——两边语言不同，握手的含义相同。",
+                  size=12, fill=MUTED))
+    return svg(1120, y + 218, "\n".join(b),
+               "读、写、核心侧：三种画法，同一条规则——只在 VALID 与 READY 同拍为 1 时才算完成")
+
+
+def axi_system() -> str:
+    b = []
+    b.append(text(24, 32, "AXI 站在系统框图的哪里：主设备 — 互连 — 从设备", size=18, bold=True))
+
+    # 主设备（能发起事务）
+    b.append(box(60, 70, 220, 70, "主机 CPU\n(master)", fill=LBLUE, stroke=BLUE, size=12.5))
+    b.append(box(320, 70, 220, 70, "DMA 引擎\n(master)", fill=LBLUE, stroke=BLUE, size=12.5))
+    b.append(box(580, 70, 220, 70, "其它加速器\n(master)", fill=LBLUE, stroke=BLUE, size=12.5))
+    # 互连
+    b.append(box(60, 200, 960, 70, "AXI 互连：按地址映射转发 + 仲裁（crossbar / NoC）",
+                 fill=GREY, stroke=INK, size=13, bold=True))
+    # 从设备（被动响应）
+    b.append(box(60, 340, 240, 78, "CoralNPU 的 s_axi\n（本课：axi_lite_slave + CSR）",
+                 fill=LAMBER, stroke=AMBER, size=12))
+    b.append(box(400, 340, 220, 78, "存储器\nITCM / DTCM / DDR", fill=LGREEN, stroke=GREEN, size=12))
+    b.append(box(700, 340, 220, 78, "外设\nUART / SPI / GPIO", fill=LPURPLE, stroke=PURPLE, size=12))
+
+    # 主设备 → 互连
+    for x in (170, 430, 690):
+        b.append(arrow(x, 144, x, 196))
+    b.append(text(180, 175, "AXI", size=11.5, fill=MUTED))
+    # 互连 → 从设备
+    for x in (180, 510, 810):
+        b.append(arrow(x, 274, x, 336))
+    b.append(text(190, 308, "s_axi", size=11.5, fill=MUTED))
+
+    # CoralNPU 的另一重身份：自己也是主设备
+    b.append(f'<polyline points="300,340 300,310 980,310 980,274" fill="none" stroke="{AMBER}" '
+             f'stroke-width="1.8" stroke-dasharray="6 4" marker-end="url(#arrowhead)"/>')
+    b.append(text(470, 302, "m_axi：CoralNPU 作为主设备，去访问系统存储器/外设", size=11.5, fill=AMBER))
+    b.append(text(24, 442, "主端口（master）能发起事务；从端口（slave）被动响应；互连按地址把请求转发给对应的从设备。",
+                  size=12, fill=MUTED))
+    return svg(1080, 470, "\n".join(b),
+               "同一个 CoralNPU：主机通过它的从端口控制它，它通过自己的主端口替主机干活")
+
+
+def axi_shell() -> str:
+    b = []
+    b.append(text(24, 32, "L04 的系统结构：主机启动核心，核心访存走 AXI", size=18, bold=True))
+
+    b.append(box(30, 120, 170, 80, "主机\n(tb 里的 AXI BFM)", fill=LBLUE, stroke=BLUE, size=12.5))
+    b.append(box(270, 70, 190, 70, "AXI4-Lite 从接口\naxi_lite_slave", fill=LAMBER, stroke=AMBER, size=12.5))
+    b.append(box(270, 170, 190, 70, "控制寄存器\nRESET / PC_START / STATUS", fill=LGREEN, stroke=GREEN, size=12.5))
+    b.append(box(270, 270, 190, 70, "ITCM（tcm.sv）\n组合读，主机可写", fill=LPURPLE, stroke=PURPLE, size=12.5))
+    b.append(box(530, 170, 170, 70, "AXI4 主接口\nAR/R、AW+W/B", fill=LAMBER, stroke=AMBER, size=12.5))
+    b.append(box(760, 70, 230, 90, "核心 core_l04\n= L03b + i_pc_start\n+ o_fault", fill=LBLUE, stroke=BLUE, size=12.5))
+    b.append(box(760, 270, 230, 80, "系统存储器\nDTCM @0x0001_0000\n(测试平台)", fill=LGREEN, stroke=GREEN, size=12.5))
+
+    b.append(arrow(204, 160, 266, 120, label="s_axi"))
+    b.append(arrow(365, 144, 365, 166))
+    b.append(arrow(365, 244, 365, 266))
+    b.append(arrow(464, 100, 756, 100, label="o_core_rst / o_core_clk_gate / o_core_pc_start", color=GREEN))
+    b.append(arrow(756, 140, 704, 172, label="imem / dmem", color=BLUE))
+    b.append(arrow(704, 236, 756, 280, label="m_axi（load/store）", color=AMBER))
+    b.append(arrow(756, 300, 464, 300, label="取指（组合读）", color=PURPLE))
+    b.append(text(24, 380,
+                  "启动：① 写 ITCM ② 写 PC_START ③ 放开时钟门控 ④ 放开复位 ⑤ 轮询 STATUS",
+                  size=12, fill=MUTED))
+    b.append(text(24, 402,
+                  "数据：核心的每次 load/store 都变成一笔 m_axi 事务；取指走外壳内部的 ITCM",
+                  size=12, fill=MUTED))
+    return svg(1040, 430, "\n".join(b),
+               "从接口让主机能启动核心，主接口让核心能访问系统存储器——两条通路用的都是 VALID/READY 握手")
+
+
 DIAGRAMS = {
+    "axi_timing": axi_timing,
+    "axi_system": axi_system,
+    "axi_shell": axi_shell,
     "learning_loop": learning_loop,
     "repo_map": repo_map,
     "toolchain_flow": toolchain_flow,
@@ -692,6 +846,7 @@ USED_BY = {
     "L02_lsu": ["lsu_fsm", "unaligned_split", "lsu_division", "memory_map"],
     "L03a_pipeline": ["pipeline_stages", "hazard_timeline"],
     "L03b_mdu_csr": ["trap_flow"],
+    "L04_axi_boot": ["axi_system", "axi_shell", "axi_timing"],
 }
 
 def generate(only: list[str] | None = None, verbose: bool = True) -> list[str]:

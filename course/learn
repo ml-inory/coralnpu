@@ -16,6 +16,7 @@
 from __future__ import annotations
 
 import json
+import glob
 import os
 import re
 import subprocess
@@ -118,20 +119,20 @@ def cmd_start(argv: list[str]) -> int:
             print(f"    - {anchor}")
         print("")
     print("  你要做的：")
-    starter = os.path.join(d, "rtl", "cpu_core.sv")
-    alu = os.path.join(d, "rtl", "alu32.sv")
-    if not os.path.exists(starter):
-        starter = alu if os.path.exists(alu) else os.path.join(d, "rtl", "majority.sv")
-    if os.path.exists(starter):
-        found = False
+    # rtl/ 下所有带 TODO 的文件（L03b 起一课可能有多个骨架文件）
+    rtl_dir = os.path.join(d, "rtl")
+    starters = sorted(glob.glob(os.path.join(rtl_dir, "*.sv")))
+    found = False
+    for starter in starters:
         for line in open(starter, encoding="utf-8"):
             m = re.search(r"TODO\s*(\d+)[：: ]*\s*(.*)", line)
             if m:
                 title = m.group(2).strip().rstrip("。")
-                print(f"    TODO {m.group(1)}  {title}")
+                rel = os.path.relpath(starter, os.path.dirname(HERE))
+                print(f"    {rel}  TODO {m.group(1)}  {title}")
                 found = True
-        if not found:
-            print(f"    见 {os.path.relpath(starter, os.path.dirname(HERE))}")
+    if not found and starters:
+        print(f"    见 {os.path.relpath(starters[0], os.path.dirname(HERE))}")
     print("")
     print(f"  自检：./learn check {stage.code}")
     print("")
