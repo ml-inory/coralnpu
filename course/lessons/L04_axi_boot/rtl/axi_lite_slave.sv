@@ -68,20 +68,20 @@ module axi_lite_slave (
   assign s_wready  = ~w_have & ~b_pending;
 
   // TODO 2：两路都到齐的那一拍拉高 o_wr_en；随后把 i_wr_resp 作为 B 响应发出去
-  assign o_wr_en   = 1'b0;
+  assign o_wr_en   = s_awvalid & s_wvalid;  // TODO
   assign o_wr_addr = aw_addr_q;
   assign o_wr_data = w_data_q;
   assign o_wr_strb = w_strb_q;
-  assign s_bvalid  = 1'b0;
+  assign s_bvalid  = ((s_awready & s_awvalid) & (s_wready & s_wvalid));  // TODO
   assign s_bresp   = b_resp_q;
 
   // ---- 读通道 ----------------------------------------------------
   // TODO 3：AR 握手，把地址捕获到 ar_addr_q 并在 R 被接走之前保持不变
-  assign s_arready = 1'b0;
+  assign s_arready = ~r_pending;
   assign o_rd_addr = ar_addr_q;
 
   // TODO 4：R 响应（组合的 i_rd_data / i_rd_resp 直接转发）
-  assign s_rvalid  = 1'b0;
+  assign s_rvalid  = s_rready & ~r_pending;
   assign s_rdata   = i_rd_data;
   assign s_rresp   = i_rd_resp;
 
