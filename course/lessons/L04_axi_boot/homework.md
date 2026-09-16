@@ -79,6 +79,9 @@ module axi_lite_slave (
 | 数据命中 ITCM | 组合读，一拍完成；写 ITCM 丢弃（ITCM 只读） |
 | 数据未命中 ITCM | 走 AXI 主接口；`o_dmem_ready` 在 R/B 到达的那一拍拉高 |
 
+这两条通路长什么样、信号从哪进哪出：见《基础知识》3.4 节的
+[启动通路](diagrams/axi_boot_path.svg)与[数据通路](diagrams/axi_data_path.svg)。
+
 ## 2. 分步完成建议
 
 每一步做完都能在 `./learn check L04` 的日志里看到对应的变化（对照表见基础知识 4.3 节）。

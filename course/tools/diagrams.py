@@ -815,10 +815,229 @@ def axi_shell() -> str:
                "从接口让主机能启动核心，主接口让核心能访问系统存储器——两条通路用的都是 VALID/READY 握手")
 
 
+def axi_boot_path() -> str:
+    """启动通路：主机 → s_axi → 从接口/译码 → ITCM 与 CSR → 核心。"""
+    b = []
+    b.append(text(24, 32, "L04 启动通路：主机走 s_axi 灌程序、配寄存器，然后把核心放出来",
+                  size=17, bold=True))
+
+    b.append(box(30, 165, 170, 110, "主机 BFM\n(tb_axi.sv)\n按 5 步流程发 AXI 事务",
+                 fill=LBLUE, stroke=BLUE, size=13))
+
+    b.append(box(230, 80, 570, 450, "", fill="#fbfcfd", stroke=MUTED, radius=10))
+    b.append(text(248, 108, "外壳 axi_boot_shell.sv —— 你写的两个文件都装在这一层",
+                  size=14.5, bold=True))
+    b.append(text(248, 130, "TODO 1 译码 · TODO 2 ITCM · TODO 3/4 CSR 与启动控制",
+                  size=12.5, fill=MUTED))
+
+    b.append(box(260, 160, 250, 115,
+                 "axi_lite_slave.sv（TODO 1–5）\nAW/W/B/AR/R 五通道\n↕ 翻译成一组本地读写信号",
+                 fill=LAMBER, stroke=AMBER, size=13))
+    b.append(box(260, 335, 250, 120,
+                 "地址译码 + 读 mux + 响应码（TODO 1）\n命中 ITCM / CSR → OKAY\n其它地址 → SLVERR\nrd_hit_* 决定读 mux 选 ITCM 还是 CSR",
+                 fill=LGREEN, stroke=GREEN, size=13))
+    b.append(box(570, 160, 215, 115,
+                 "ITCM  tcm.sv（TODO 2）\n8 KB @ 0x0000_0000\n主机写口 + 3 个组合读口",
+                 fill=LPURPLE, stroke=PURPLE, size=13))
+    b.append(box(570, 335, 215, 120,
+                 "三个控制寄存器（TODO 3/4）\nRESET_CONTROL @0x30000\nPC_START @0x30004\nSTATUS @0x30008",
+                 fill=LGREEN, stroke=GREEN, size=13))
+    b.append(box(920, 160, 235, 295,
+                 "核心 core_l04\n（课程提供）\n\n= L03b 流水线核\n+ i_pc_start\n+ o_fault\n\n复位后从\nPC_START 取指",
+                 fill=LBLUE, stroke=BLUE, size=13))
+
+    # 主机 → 从接口
+    b.append(arrow(202, 220, 256, 220, color=BLUE))
+    b.append(text(228, 208, "s_axi", size=12.5, anchor="middle", fill=MUTED))
+
+    # 从接口 ↔ 译码（本地读写端口）
+    b.append(arrow(330, 277, 330, 331, color=INK))
+    b.append(arrow(440, 331, 440, 277, color=PURPLE))
+    b.append(text(340, 290, "写口：o_wr_en 单拍脉冲", size=12.5))
+    b.append(text(430, 318, "读：o_rd_addr / i_rd_data", size=12.5, anchor="end", fill=PURPLE))
+
+    # 译码 → ITCM / CSR
+    b.append(arrow(512, 380, 566, 250, label="wr_hit_itcm", size=12.5, color=PURPLE))
+    b.append(arrow(512, 395, 566, 395, label="wr_hit_csr", size=12.5, color=GREEN))
+
+    # CSR → 核心：三根控制线
+    b.append(arrow(785, 335, 785, 300, dashed=True, color=GREEN))
+    b.append(f'<polyline points="785,300 900,300 900,240 916,240" fill="none" stroke="{GREEN}" '
+             f'stroke-width="1.8" marker-end="url(#arrowhead)"/>')
+    b.append(text(806, 214, "启动控制 3 根", size=12.5, bold=True, fill=GREEN))
+    b.append(text(806, 236, "clk_gate", size=12.5, fill=GREEN))
+    b.append(text(806, 258, "rst · pc_start", size=12.5, fill=GREEN))
+
+    # 核心 → CSR：状态回送
+    b.append(f'<polyline points="1040,458 1040,505 700,505 700,458" fill="none" stroke="{AMBER}" '
+             f'stroke-width="1.8" stroke-dasharray="6 4" marker-end="url(#arrowhead)"/>')
+    b.append(text(710, 498, "状态回送：i_core_halted / i_core_fault → STATUS",
+                  size=12.5, fill=AMBER))
+
+    y = 570
+    for line in [
+        "① 写 ITCM：主机从 0x0 起逐个字写程序（wr_hit_itcm → tcm 的 host_we）",
+        "② 写 PC_START：0x30004 ← 0x100，再读回确认；此刻核心还没动（复位 + 时钟门控）",
+        "③ 放开时钟门控：RESET_CONTROL ← 0x1（RESET 仍为 1）——核心第一次有时钟沿，就地被复位",
+        "④ 放开复位：RESET_CONTROL ← 0x0 ——下一个时钟沿把 PC ← PC_START，开始取指",
+        "⑤ 轮询 STATUS：读 0x30008，HALTED=1（执行了 mpause）或 FAULT=1（跑飞了）",
+    ]:
+        b.append(text(30, y, line, size=12.5, fill=MUTED))
+        y += 24
+    return svg(1180, y + 24, "\n".join(b),
+               "两条通路在 ITCM 和 CSR 上汇合：主机写 ITCM 决定核心跑什么，主机写 CSR 决定核心什么时候跑")
+
+
+def axi_data_path() -> str:
+    """数据通路：核心的一次 load/store 如何在 ITCM 命中与 m_axi 事务之间选择。"""
+    b = []
+    b.append(text(24, 32, "L04 数据通路：核心的每次 load/store，要么命中 ITCM，要么变成一笔 m_axi 事务",
+                  size=17, bold=True))
+    b.append(text(24, 58, "取指是另一条路：i_imem_addr → ITCM 组合读 → o_imem_rdata，永远不出外壳",
+                  size=12.5, fill=PURPLE))
+
+    b.append(box(30, 200, 230, 250, "", fill=LBLUE, stroke=BLUE))
+    b.append(text(50, 230, "核心 core_l04", size=14, bold=True, fill=BLUE))
+    for i, t in enumerate([
+        "imem_addr →（取指）",
+        "← imem_rdata",
+        "",
+        "dmem 请求 →",
+        "valid / we / addr",
+        "wdata / wmask",
+        "",
+        "← dmem 回执",
+        "rdata / ready",
+    ]):
+        b.append(text(50, 258 + i * 21, t, size=12.5))
+
+    b.append(box(340, 250, 250, 145, "", fill=LGREEN, stroke=GREEN))
+    b.append(text(360, 280, "核心侧路由（TODO 5）", size=14, bold=True, fill=GREEN))
+    for i, t in enumerate([
+        "输入：valid / we / addr / wdata / wmask",
+        "d_hit_itcm：addr < 0x2000",
+        "命中 → ITCM 组合读，1 拍完成",
+        "未命中 → d_go_axi = 1",
+    ]):
+        b.append(text(360, 308 + i * 21, t, size=12.5))
+
+    b.append(box(680, 110, 250, 130, "", fill=LPURPLE, stroke=PURPLE))
+    b.append(text(700, 140, "ITCM  tcm.sv", size=14, bold=True, fill=PURPLE))
+    for i, t in enumerate([
+        "组合读：给地址那一拍就出数据",
+        "核心没有 ready 可以等，",
+        "所以它必须留在片内",
+    ]):
+        b.append(text(700, 168 + i * 21, t, size=12.5))
+
+    b.append(box(680, 330, 250, 130, "", fill=LAMBER, stroke=AMBER))
+    b.append(text(700, 360, "AXI 主状态机（TODO 6）", size=14, bold=True, fill=AMBER))
+    for i, t in enumerate([
+        "读：IDLE→RADDR→RDATA→IDLE",
+        "写：IDLE→WADDR→BRESP→IDLE",
+        "o_dmem_ready 在 R/B 到达时拉高",
+    ]):
+        b.append(text(700, 388 + i * 21, t, size=12.5))
+
+    b.append(box(990, 330, 160, 120, "系统存储器\nDTCM\n@0x0001_0000\n（tb 的模型）",
+                 fill=LGREEN, stroke=GREEN, size=13))
+
+    # 核心 → 路由
+    b.append(arrow(262, 320, 336, 320, label="i_dmem_*", size=12.5, color=BLUE))
+    # 路由 → ITCM（命中）
+    b.append(f'<polyline points="500,248 500,200 676,200" fill="none" stroke="{PURPLE}" '
+             f'stroke-width="1.8" marker-end="url(#arrowhead)"/>')
+    b.append(text(508, 240, "命中：交给 ITCM 组合读", size=12.5, fill=PURPLE))
+    # 路由 → 状态机（未命中）
+    b.append(arrow(590, 360, 676, 360, label="未命中", size=12.5, color=AMBER))
+    # 状态机 → DTCM
+    b.append(arrow(930, 395, 986, 395, label="m_axi", size=12.5, color=AMBER))
+    b.append(text(1160, 474, "m_axi 上的两笔：AR/R 或 AW+W/B", size=12.5, fill=AMBER, anchor="end"))
+    # 回程 1：命中当拍就有
+    b.append(f'<polyline points="790,108 790,80 150,80 150,196" fill="none" stroke="{PURPLE}" '
+             f'stroke-width="1.8" stroke-dasharray="6 4" marker-end="url(#arrowhead)"/>')
+    b.append(text(300, 98, "命中：o_dmem_rdata / o_dmem_ready 当拍就有", size=12.5, fill=PURPLE))
+    # 回程 2：未命中要等 R / B
+    b.append(f'<polyline points="790,462 790,520 150,520 150,456" fill="none" stroke="{AMBER}" '
+             f'stroke-width="1.8" stroke-dasharray="6 4" marker-end="url(#arrowhead)"/>')
+    b.append(text(300, 512, "未命中：等 R（读）或 B（写）到达，才拉高 o_dmem_ready", size=12.5, fill=AMBER))
+
+    return svg(1180, 600, "\n".join(b),
+               "ITCM 命中是「组合读、一拍结束」，未命中才是「AR→R / AW→B 的多次握手」——两者在 o_dmem_ready 上汇合")
+
+
+def axi_boot_sequence() -> str:
+    """5 步启动流程：每一步之后三个控制寄存器、时钟、复位和核心状态各是什么。"""
+    b = []
+    b.append(text(24, 32, "5 步启动流程：为什么必须先放开时钟、再放开复位", size=17, bold=True))
+    b.append(text(24, 58, "每一列是一个阶段；上下对照着看「主机做了什么」和「核心看到了什么」",
+                  size=12.5, fill=MUTED))
+
+    x0, col = 190, 196
+    steps = [
+        ("① 写 ITCM", "主机把程序逐字写进\n0x0000_0000 起的 8 KB"),
+        ("② 写 PC_START", "0x30004 ← 0x100\n再读回来确认"),
+        ("③ 放开时钟", "RESET_CONTROL ← 0x1\n（RESET 仍然 = 1）"),
+        ("④ 放开复位", "RESET_CONTROL ← 0x0\n（CLOCK_GATE = 0）"),
+        ("⑤ 轮询 STATUS", "读 0x30008\n看 HALTED / FAULT"),
+    ]
+    for i, (title, body) in enumerate(steps):
+        x = 30 + i * 228
+        b.append(box(x, 80, 212, 110, title, fill=LBLUE, stroke=BLUE, size=14, bold=True))
+        b.append(text(x + 12, 176, body, size=12.5, fill=MUTED))
+
+    rows = [
+        ("RESET_CONTROL", ["0x3", "0x3", "0x1", "0x0", "0x0"], INK),
+        ("CLOCK_GATE", ["1（关）", "1（关）", "0（开）", "0（开）", "0（开）"], INK),
+        ("core 看到的时钟", ["没有时钟沿", "没有时钟沿", "开始有时钟沿", "有时钟沿", "有时钟沿"], BLUE),
+        ("o_core_rst", ["1（但没沿采样）", "1", "1（这个沿采样到）", "0", "0"], RED),
+        ("核心状态", ["未初始化", "未初始化", "被复位：PC ← 0x100", "从 0x100 取指", "停机 / 跑飞"], GREEN),
+        ("STATUS", ["0", "0", "0", "0", "HALTED 或 FAULT"], AMBER),
+    ]
+    y = 270
+    for name, cells, color in rows:
+        b.append(f'<line x1="30" y1="{y - 16}" x2="1160" y2="{y - 16}" stroke="#dfe4ea" stroke-width="1"/>')
+        b.append(text(30, y + 4, name, size=12.5, bold=True, fill=color))
+        for i, c in enumerate(cells):
+            b.append(text(x0 + i * col + col / 2 - 20, y + 4, c, size=12.5, anchor="middle"))
+        y += 46
+    b.append(f'<line x1="30" y1="{y - 16}" x2="1160" y2="{y - 16}" stroke="#dfe4ea" stroke-width="1"/>')
+
+    # 阶段分隔线
+    for i in range(1, 5):
+        x = 30 + i * 228 - 8
+        b.append(f'<line x1="{x}" y1="76" x2="{x}" y2="{y - 16}" stroke="{MUTED}" '
+                 f'stroke-width="1" stroke-dasharray="4 4"/>')
+
+    # core_clk / core_rst 的波形示意
+    wy = 236
+    b.append(text(30, wy + 4, "core_clk", size=12.5, bold=True, fill=BLUE))
+    b.append(f'<line x1="{x0}" y1="{wy}" x2="{x0 + 2 * col}" y2="{wy}" stroke="{MUTED}" '
+             f'stroke-width="1.6" stroke-dasharray="5 4"/>')
+    pts = []
+    px = x0 + 2 * col
+    for _ in range(3):
+        pts += [f"{px},{wy}", f"{px + col / 2},{wy}", f"{px + col / 2},{wy - 16}",
+                f"{px + col},{wy - 16}", f"{px + col},{wy}"]
+        px += col
+    b.append(f'<polyline points="{" ".join(pts)}" fill="none" stroke="{BLUE}" stroke-width="1.6"/>')
+    b.append(text(x0 + col, wy - 8, "时钟被门控（没有时钟沿）", size=12.5, fill=MUTED, anchor="middle"))
+
+    b.append(text(24, y + 44,
+                  "反例：如果第 3、4 步调换——先放开复位（此时还没有时钟），等时钟来的第一个沿，rst 已经是 0，"
+                  "核心从没见过「复位有效」，寄存器停在未初始化状态（仿真里就是 X，一条指令都不执行）。",
+                  size=12.5, fill=RED))
+    return svg(1180, y + 94, "\n".join(b),
+               "顺序不是随口定的：同步复位需要「一个 rst=1 的时钟沿」才生效，所以时钟必须先开")
+
+
 DIAGRAMS = {
     "axi_timing": axi_timing,
     "axi_system": axi_system,
     "axi_shell": axi_shell,
+    "axi_boot_path": axi_boot_path,
+    "axi_data_path": axi_data_path,
+    "axi_boot_sequence": axi_boot_sequence,
     "learning_loop": learning_loop,
     "repo_map": repo_map,
     "toolchain_flow": toolchain_flow,
@@ -846,7 +1065,8 @@ USED_BY = {
     "L02_lsu": ["lsu_fsm", "unaligned_split", "lsu_division", "memory_map"],
     "L03a_pipeline": ["pipeline_stages", "hazard_timeline"],
     "L03b_mdu_csr": ["trap_flow"],
-    "L04_axi_boot": ["axi_system", "axi_shell", "axi_timing"],
+    "L04_axi_boot": ["axi_system", "axi_shell", "axi_boot_path", "axi_data_path",
+                     "axi_boot_sequence", "axi_timing"],
 }
 
 def generate(only: list[str] | None = None, verbose: bool = True) -> list[str]:

@@ -1,0 +1,69 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1180" height="640" viewBox="0 0 1180 640">
+<defs><marker id="arrowhead" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#1f2933"/></marker></defs>
+<rect width="1180" height="640" fill="#ffffff"/>
+<text x="24" y="32" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="17" font-weight="700" fill="#1f2933" text-anchor="start"><tspan x="24" dy="0">5 步启动流程：为什么必须先放开时钟、再放开复位</tspan></text>
+<text x="24" y="58" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="13" font-weight="400" fill="#5b6b7b" text-anchor="start"><tspan x="24" dy="0">每一列是一个阶段；上下对照着看「主机做了什么」和「核心看到了什么」</tspan></text>
+<rect x="30" y="80" width="212" height="110" rx="8" ry="8" fill="#e8effd" stroke="#1d4ed8" stroke-width="1.6"/><text x="136.0" y="139.9" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="14" font-weight="700" fill="#1f2933" text-anchor="middle"><tspan x="136.0" dy="0">① 写 ITCM</tspan></text>
+<text x="42" y="176" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="13" font-weight="400" fill="#5b6b7b" text-anchor="start"><tspan x="42" dy="0">主机把程序逐字写进</tspan><tspan x="42" dy="17.55">0x0000_0000 起的 8 KB</tspan></text>
+<rect x="258" y="80" width="212" height="110" rx="8" ry="8" fill="#e8effd" stroke="#1d4ed8" stroke-width="1.6"/><text x="364.0" y="139.9" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="14" font-weight="700" fill="#1f2933" text-anchor="middle"><tspan x="364.0" dy="0">② 写 PC_START</tspan></text>
+<text x="270" y="176" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="13" font-weight="400" fill="#5b6b7b" text-anchor="start"><tspan x="270" dy="0">0x30004 ← 0x100</tspan><tspan x="270" dy="17.55">再读回来确认</tspan></text>
+<rect x="486" y="80" width="212" height="110" rx="8" ry="8" fill="#e8effd" stroke="#1d4ed8" stroke-width="1.6"/><text x="592.0" y="139.9" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="14" font-weight="700" fill="#1f2933" text-anchor="middle"><tspan x="592.0" dy="0">③ 放开时钟</tspan></text>
+<text x="498" y="176" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="13" font-weight="400" fill="#5b6b7b" text-anchor="start"><tspan x="498" dy="0">RESET_CONTROL ← 0x1</tspan><tspan x="498" dy="17.55">（RESET 仍然 = 1）</tspan></text>
+<rect x="714" y="80" width="212" height="110" rx="8" ry="8" fill="#e8effd" stroke="#1d4ed8" stroke-width="1.6"/><text x="820.0" y="139.9" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="14" font-weight="700" fill="#1f2933" text-anchor="middle"><tspan x="820.0" dy="0">④ 放开复位</tspan></text>
+<text x="726" y="176" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="13" font-weight="400" fill="#5b6b7b" text-anchor="start"><tspan x="726" dy="0">RESET_CONTROL ← 0x0</tspan><tspan x="726" dy="17.55">（CLOCK_GATE = 0）</tspan></text>
+<rect x="942" y="80" width="212" height="110" rx="8" ry="8" fill="#e8effd" stroke="#1d4ed8" stroke-width="1.6"/><text x="1048.0" y="139.9" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="14" font-weight="700" fill="#1f2933" text-anchor="middle"><tspan x="1048.0" dy="0">⑤ 轮询 STATUS</tspan></text>
+<text x="954" y="176" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="13" font-weight="400" fill="#5b6b7b" text-anchor="start"><tspan x="954" dy="0">读 0x30008</tspan><tspan x="954" dy="17.55">看 HALTED / FAULT</tspan></text>
+<line x1="30" y1="254" x2="1160" y2="254" stroke="#dfe4ea" stroke-width="1"/>
+<text x="30" y="274" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="13" font-weight="700" fill="#1f2933" text-anchor="start"><tspan x="30" dy="0">RESET_CONTROL</tspan></text>
+<text x="268.0" y="274" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="middle"><tspan x="268.0" dy="0">0x3</tspan></text>
+<text x="464.0" y="274" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="middle"><tspan x="464.0" dy="0">0x3</tspan></text>
+<text x="660.0" y="274" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="middle"><tspan x="660.0" dy="0">0x1</tspan></text>
+<text x="856.0" y="274" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="middle"><tspan x="856.0" dy="0">0x0</tspan></text>
+<text x="1052.0" y="274" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="middle"><tspan x="1052.0" dy="0">0x0</tspan></text>
+<line x1="30" y1="300" x2="1160" y2="300" stroke="#dfe4ea" stroke-width="1"/>
+<text x="30" y="320" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="13" font-weight="700" fill="#1f2933" text-anchor="start"><tspan x="30" dy="0">CLOCK_GATE</tspan></text>
+<text x="268.0" y="320" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="middle"><tspan x="268.0" dy="0">1（关）</tspan></text>
+<text x="464.0" y="320" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="middle"><tspan x="464.0" dy="0">1（关）</tspan></text>
+<text x="660.0" y="320" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="middle"><tspan x="660.0" dy="0">0（开）</tspan></text>
+<text x="856.0" y="320" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="middle"><tspan x="856.0" dy="0">0（开）</tspan></text>
+<text x="1052.0" y="320" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="middle"><tspan x="1052.0" dy="0">0（开）</tspan></text>
+<line x1="30" y1="346" x2="1160" y2="346" stroke="#dfe4ea" stroke-width="1"/>
+<text x="30" y="366" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="13" font-weight="700" fill="#1d4ed8" text-anchor="start"><tspan x="30" dy="0">core 看到的时钟</tspan></text>
+<text x="268.0" y="366" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="middle"><tspan x="268.0" dy="0">没有时钟沿</tspan></text>
+<text x="464.0" y="366" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="middle"><tspan x="464.0" dy="0">没有时钟沿</tspan></text>
+<text x="660.0" y="366" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="middle"><tspan x="660.0" dy="0">开始有时钟沿</tspan></text>
+<text x="856.0" y="366" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="middle"><tspan x="856.0" dy="0">有时钟沿</tspan></text>
+<text x="1052.0" y="366" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="middle"><tspan x="1052.0" dy="0">有时钟沿</tspan></text>
+<line x1="30" y1="392" x2="1160" y2="392" stroke="#dfe4ea" stroke-width="1"/>
+<text x="30" y="412" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="13" font-weight="700" fill="#b91c1c" text-anchor="start"><tspan x="30" dy="0">o_core_rst</tspan></text>
+<text x="268.0" y="412" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="middle"><tspan x="268.0" dy="0">1（但没沿采样）</tspan></text>
+<text x="464.0" y="412" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="middle"><tspan x="464.0" dy="0">1</tspan></text>
+<text x="660.0" y="412" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="middle"><tspan x="660.0" dy="0">1（这个沿采样到）</tspan></text>
+<text x="856.0" y="412" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="middle"><tspan x="856.0" dy="0">0</tspan></text>
+<text x="1052.0" y="412" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="middle"><tspan x="1052.0" dy="0">0</tspan></text>
+<line x1="30" y1="438" x2="1160" y2="438" stroke="#dfe4ea" stroke-width="1"/>
+<text x="30" y="458" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="13" font-weight="700" fill="#0f766e" text-anchor="start"><tspan x="30" dy="0">核心状态</tspan></text>
+<text x="268.0" y="458" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="middle"><tspan x="268.0" dy="0">未初始化</tspan></text>
+<text x="464.0" y="458" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="middle"><tspan x="464.0" dy="0">未初始化</tspan></text>
+<text x="660.0" y="458" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="middle"><tspan x="660.0" dy="0">被复位：PC ← 0x100</tspan></text>
+<text x="856.0" y="458" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="middle"><tspan x="856.0" dy="0">从 0x100 取指</tspan></text>
+<text x="1052.0" y="458" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="middle"><tspan x="1052.0" dy="0">停机 / 跑飞</tspan></text>
+<line x1="30" y1="484" x2="1160" y2="484" stroke="#dfe4ea" stroke-width="1"/>
+<text x="30" y="504" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="13" font-weight="700" fill="#b45309" text-anchor="start"><tspan x="30" dy="0">STATUS</tspan></text>
+<text x="268.0" y="504" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="middle"><tspan x="268.0" dy="0">0</tspan></text>
+<text x="464.0" y="504" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="middle"><tspan x="464.0" dy="0">0</tspan></text>
+<text x="660.0" y="504" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="middle"><tspan x="660.0" dy="0">0</tspan></text>
+<text x="856.0" y="504" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="middle"><tspan x="856.0" dy="0">0</tspan></text>
+<text x="1052.0" y="504" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="middle"><tspan x="1052.0" dy="0">HALTED 或 FAULT</tspan></text>
+<line x1="30" y1="530" x2="1160" y2="530" stroke="#dfe4ea" stroke-width="1"/>
+<line x1="250" y1="76" x2="250" y2="530" stroke="#5b6b7b" stroke-width="1" stroke-dasharray="4 4"/>
+<line x1="478" y1="76" x2="478" y2="530" stroke="#5b6b7b" stroke-width="1" stroke-dasharray="4 4"/>
+<line x1="706" y1="76" x2="706" y2="530" stroke="#5b6b7b" stroke-width="1" stroke-dasharray="4 4"/>
+<line x1="934" y1="76" x2="934" y2="530" stroke="#5b6b7b" stroke-width="1" stroke-dasharray="4 4"/>
+<text x="30" y="240" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="13" font-weight="700" fill="#1d4ed8" text-anchor="start"><tspan x="30" dy="0">core_clk</tspan></text>
+<line x1="190" y1="236" x2="582" y2="236" stroke="#5b6b7b" stroke-width="1.6" stroke-dasharray="5 4"/>
+<polyline points="582,236 680.0,236 680.0,220 778,220 778,236 778,236 876.0,236 876.0,220 974,220 974,236 974,236 1072.0,236 1072.0,220 1170,220 1170,236" fill="none" stroke="#1d4ed8" stroke-width="1.6"/>
+<text x="386" y="228" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="13" font-weight="400" fill="#5b6b7b" text-anchor="middle"><tspan x="386" dy="0">时钟被门控（没有时钟沿）</tspan></text>
+<text x="24" y="590" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="13" font-weight="400" fill="#b91c1c" text-anchor="start"><tspan x="24" dy="0">反例：如果第 3、4 步调换——先放开复位（此时还没有时钟），等时钟来的第一个沿，rst 已经是 0，核心从没见过「复位有效」，寄存器停在未初始化状态（仿真里就是 X，一条指令都不执行）。</tspan></text>
+<text x="24" y="626" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="13" font-weight="400" fill="#5b6b7b" text-anchor="start"><tspan x="24" dy="0">顺序不是随口定的：同步复位需要「一个 rst=1 的时钟沿」才生效，所以时钟必须先开</tspan></text>
+</svg>

@@ -254,6 +254,12 @@ assign o_dmem_rdata = d_hit_itcm ? itcm_drdata : m_rdata;                // 读�
 ⑤ 轮询 STATUS             读到 HALTED=1（正常停机）或 FAULT=1（跑飞）
 ```
 
+![5 步启动流程逐阶段对照](diagrams/axi_boot_sequence.svg)
+
+图上每一列是一个阶段，上下对照着看"主机做了什么"和"核心看到了什么"：
+中间三行（`RESET_CONTROL`、`CLOCK_GATE`、`o_core_rst`）是这一课最容易搞混的地方——
+主机的写是立刻生效的，但核心要等到**有时钟沿**才能"看到"复位。
+
 ## 3.3 为什么必须"先放开时钟、再放开复位"
 
 这是本课最容易踩的坑，也是上游文档专门写了一段的原因（"Reset Considerations"）：
@@ -269,6 +275,15 @@ assign o_dmem_rdata = d_hit_itcm ? itcm_drdata : m_rdata;                // 读�
 ## 3.4 本课的系统结构
 
 ![L04 的系统结构](diagrams/axi_shell.svg)
+
+把外壳拆开看，它其实是**两条互不干扰的通路**，只在 ITCM 和 CSR 两个地方汇合：
+
+![L04 的启动通路（主机 → s_axi → ITCM / CSR → 核心）](diagrams/axi_boot_path.svg)
+
+主机进不来核内部、核也出不去主机侧，两边全靠这层外壳翻译：
+主机说的语言是 AXI4-Lite 的五条通道，核心说的语言是"本地读写端口"。
+
+![L04 的数据通路（核心 → 路由 → ITCM 或 m_axi → 系统存储器）](diagrams/axi_data_path.svg)
 
 ```text
    主机（tb_axi.sv 里的 BFM）                系统存储器（tb 里）
