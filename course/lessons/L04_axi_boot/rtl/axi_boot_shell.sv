@@ -158,8 +158,11 @@ module axi_boot_shell (
       case (l_rd_addr)
         CSR_BASE:         csr_rdata = {30'h0, cg_bit, reset_bit};
         CSR_BASE + 32'd4: csr_rdata = pc_start_q;
-        CSR_BASE + 32'd8: csr_rdata = {30'h0, i_core_fault, i_core_halted};
+        CSR_BASE + 32'd8: csr_rdata = {30'h0, i_core_fault | bus_error_q, i_core_halted};
+        default:          csr_rdata = 32'h0;
       endcase
+    end else begin
+      csr_rdata = 32'h0;
     end
   end
   
@@ -191,7 +194,8 @@ module axi_boot_shell (
         pc_start_q <= l_wr_data;
       end
 
-      bus_error_q <= i_core_fault | i_core_halted;
+      if ((m_rvalid && (m_rresp != OKAY)) || (m_bvalid && (m_bresp != OKAY)))
+        bus_error_q <= 1'b1;
     end
   end
 
@@ -203,7 +207,8 @@ module axi_boot_shell (
   assign d_hit_itcm   = i_dmem_addr < ITCM_BYTES;
   assign d_go_axi     = i_dmem_valid & ~d_hit_itcm;
   assign o_dmem_rdata = d_hit_itcm ? itcm_drdata : m_rdata;
-  assign o_dmem_ready = d_hit_itcm ? 1'b1 : m_rready;
+  assign o_dmem_ready = d_hit_itcm ? 1'b1 :
+                        i_dmem_we ? (mstate == M_BRESP && m_bvalid) : (mstate == M_RDATA && m_rvalid);
 
   // ---------------------------------------------------------------- TODO 6
   // TODO 6：AXI 主接口（单拍读 AR→R、单拍写 AW+W→B）
@@ -214,14 +219,14 @@ module axi_boot_shell (
   logic        aw_pending, w_pending;
 
   assign m_araddr  = m_addr_q;
-  assign m_arvalid = 1'b0;
-  assign m_rready  = 1'b0;
+  assign m_arvalid = mstate == M_RADDR;
+  assign m_rready  = mstate == M_RDATA;
   assign m_awaddr  = m_addr_q;
-  assign m_awvalid = 1'b0;
+  assign m_awvalid = (mstate == M_WADDR) & aw_pending;
   assign m_wdata   = m_wdata_q;
   assign m_wstrb   = m_strb_q;
-  assign m_wvalid  = 1'b0;
-  assign m_bready  = 1'b0;
+  assign m_wvalid  = (mstate == M_WADDR) & w_pending;
+  assign m_bready  = mstate == M_BRESP;
 
   always_ff @(posedge clk) begin
     if (rst) begin
@@ -233,6 +238,42 @@ module axi_boot_shell (
       m_strb_q   <= 4'h0;
     end else begin
       // TODO 6：主状态机的时序部分
+      case (mstate)
+        M_IDLE: begin
+          if (d_go_axi) begin
+            if (i_dmem_we) begin
+              aw_pending <= 1'b1;
+              w_pending <= 1'b1;
+              m_addr_q <= i_dmem_addr;
+              m_wdata_q <= i_dmem_wdata;
+              m_strb_q <= i_dmem_wmask;
+              mstate <= M_WADDR;
+            end
+            else begin
+              m_addr_q <= i_dmem_addr;
+              mstate <= M_RADDR;
+            end
+          end
+          else  mstate <= M_IDLE;
+        end
+        M_RADDR: begin
+          mstate <= m_arready ? M_RDATA : M_RADDR;
+        end
+        M_RDATA: begin
+          mstate <= m_rvalid ? M_IDLE : M_RDATA;
+        end
+        M_WADDR: begin
+          if (m_awvalid && m_awready) aw_pending <= 1'b0;
+          if (m_wvalid && m_wready) w_pending <= 1'b0;
+          mstate <= ~aw_pending & ~w_pending ? M_BRESP : M_WADDR;
+        end
+        M_BRESP: begin
+          mstate <= m_bvalid ? M_IDLE : M_BRESP;
+          aw_pending <= 1'b0;
+          w_pending <= 1'b0;
+        end
+        default: mstate <= M_IDLE;
+      endcase
     end
   end
 
