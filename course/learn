@@ -22,6 +22,7 @@ import os
 import re
 import subprocess
 import sys
+import time
 from datetime import datetime
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -272,6 +273,25 @@ def cmd_wave(argv: list[str]) -> int:
             check_args.append(rest[i])
             i += 1
 
+    # 不看 --signals 时给一组"每节课最该看"的信号，免得 300 多个信号看麻
+    default_signals = {
+        "L04": "s_awvalid,s_awready,s_wvalid,s_wready,s_bvalid,s_bready,"
+               "s_arvalid,s_arready,s_rvalid,s_rready",
+        "L03A": "pc,id_valid,ex_valid,mem_valid,wb_valid",
+        "L03B": "pc,ex_valid,csr_we,x_ex_valid",
+        "L02": "dmem_valid,dmem_we,dmem_ready,dmem_addr,dmem_wmask",
+    }.get(stage.code.upper())
+    if not any(a == "--signals" for a in wave_args) and default_signals:
+        wave_args += ["--signals", default_signals]
+        print(f"（未指定 --signals，默认打印 {stage.code} 的关键信号；"
+              f"可用 --list 查看全部信号名）")
+    # 默认只留"有变化"的行，并把重复的中间段折叠掉
+    if "--changes-only" not in wave_args:
+        wave_args.append("--changes-only")
+    if "--elide" not in wave_args:
+        wave_args += ["--elide", "18"]
+
+    started = time.time()
     print(f"运行 {stage.code} 检查并转储波形……")
     proc = subprocess.run([sys.executable, checks, "--waves", "--no-color"] + check_args,
                           capture_output=True, text=True)
@@ -279,15 +299,26 @@ def cmd_wave(argv: list[str]) -> int:
     print("\n".join(tail[-6:]) if tail else "")
     sys.stdout.flush()
 
+    # 编译没通过时不要拿上一次的旧波形骗自己
+    if "编译失败" in proc.stdout or "error(s) during elaboration" in proc.stdout:
+        print("")
+        print("编译没通过，先修编译错误（下面节选）：")
+        errs = [l for l in proc.stdout.splitlines()
+                if "error" in l.lower() or "错误" in l]
+        for line in errs[:8]:
+            print("  " + line.strip())
+        return 1
+
     wave_dir = os.path.join(HERE, "work", stage.code.replace("L03A", "L03a").replace("L03B", "L03b"), "waves")
     if not os.path.isdir(wave_dir):
         # 目录名与阶段号不一定一致，退而求其次：按最近修改找
         wave_dir = os.path.join(HERE, "work")
     candidates = []
     for root, _, files in os.walk(wave_dir):
-        candidates += [os.path.join(root, f) for f in files if f.endswith(".vcd")]
+        candidates += [os.path.join(root, f) for f in files
+                       if f.endswith(".vcd") and os.path.getmtime(os.path.join(root, f)) >= started - 1]
     if not candidates:
-        print("没有找到 .vcd：检查器可能没跑到仿真（先确认编译通过）。")
+        print("这次没有生成新的 .vcd：检查器可能没跑到仿真（先看上面的报错）。")
         return 1
     preferred = [c for c in candidates if "lat0" in os.path.basename(c)]
     vcd = max(preferred or candidates, key=os.path.getmtime)
