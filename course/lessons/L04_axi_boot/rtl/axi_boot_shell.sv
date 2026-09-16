@@ -121,20 +121,27 @@ module axi_boot_shell (
   assign wr_hit_csr  = l_wr_en & (l_rd_addr >= CSR_BASE & l_rd_addr <= CSR_BASE + 32'h0000_0008);
   assign rd_hit_itcm = l_rd_addr < 32'h0000_1FFF;
   assign rd_hit_csr  = l_rd_addr >= CSR_BASE & l_rd_addr <= CSR_BASE + 32'h0000_0008;
-  assign l_rd_data   = 32'h0;
+  // 注意：l_rd_data 现在由下面的 TCM 实例驱动（TODO 3 做 CSR 时再改成按 hit 选择）
   assign l_rd_resp   = ~l_wr_en & (rd_hit_itcm | rd_hit_csr) ? OKAY : SLVERR;
   assign l_wr_resp   = l_wr_en  & (wr_hit_itcm | wr_hit_csr) ? OKAY : SLVERR;
 
   // ---------------------------------------------------------------- TODO 2
   // TODO 2：例化 ITCM（tcm.sv），把主机写口接到译码结果
-  logic [31:0] itcm_host_rdata, itcm_irdata, itcm_drdata;
-  assign itcm_host_rdata = 32'h0;
-  assign itcm_irdata     = o_imem_rdata;
-  assign itcm_drdata     = i_dmem_wdata;
+  logic [31:0] itcm_irdata, itcm_drdata;
 
   tcm #(ITCM_BYTES, 32'h0000_0000) u_tcm
   (
-    .clk(clk), .host_we(1'b0), .host_waddr()
+    .clk(clk), 
+    .host_we(wr_hit_itcm), 
+    .host_waddr(l_wr_addr),
+    .host_wdata(l_wr_data),
+    .host_wstrb(l_wr_strb),
+    .host_raddr(l_rd_addr),
+    .host_rdata(l_rd_data),
+    .iaddr(i_imem_addr),
+    .irdata(itcm_irdata),
+    .daddr(i_dmem_addr),
+    .drdata(itcm_drdata)
   );
 
   // ---------------------------------------------------------------- TODO 3
