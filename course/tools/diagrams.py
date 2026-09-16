@@ -966,6 +966,73 @@ def axi_data_path() -> str:
                "ITCM 命中是「组合读、一拍结束」，未命中才是「AR→R / AW→B 的多次握手」——两者在 o_dmem_ready 上汇合")
 
 
+def axi_master_fsm() -> str:
+    """主接口状态机：读 AR→R、写 AW+W→B，以及每个状态各拉高哪些信号。"""
+    b = []
+    b.append(text(24, 32, "主接口状态机：把核心的一次 load/store 变成 AXI 事务", size=17, bold=True))
+    b.append(text(24, 58, "核心只说「valid 举着、等 ready」；AXI 那边要走好几次握手，状态机负责把两者对齐",
+                  size=12.5, fill=MUTED))
+
+    b.append(box(40, 200, 140, 80, "M_IDLE\n抓一次请求", fill=GREY, stroke=INK, size=13, bold=True))
+    b.append(box(250, 100, 160, 80, "M_RADDR\n发 AR 地址", fill=LBLUE, stroke=BLUE, size=13))
+    b.append(box(470, 100, 160, 80, "M_RDATA\n等 R 数据", fill=LBLUE, stroke=BLUE, size=13))
+    b.append(box(250, 300, 160, 80, "M_WADDR\nAW、W 各自握手", fill=LAMBER, stroke=AMBER, size=13))
+    b.append(box(470, 300, 160, 80, "M_BRESP\n等 B 响应", fill=LAMBER, stroke=AMBER, size=13))
+
+    # 读路径
+    b.append(arrow(184, 214, 246, 146, label="d_go_axi & ~i_dmem_we", size=12.5, color=BLUE))
+    b.append(arrow(414, 140, 466, 140, label="m_arready", size=12.5, color=BLUE))
+    b.append(f'<polyline points="550,184 550,252 186,252" fill="none" stroke="{BLUE}" '
+             f'stroke-width="1.8" marker-end="url(#arrowhead)"/>')
+    b.append(text(560, 246, "m_rvalid：这一拍才把 o_dmem_ready 拉高，并给出 o_dmem_rdata",
+                  size=12.5, fill=BLUE))
+    # 写路径
+    b.append(arrow(184, 266, 246, 334, label="d_go_axi & i_dmem_we", size=12.5, color=AMBER))
+    b.append(arrow(414, 340, 466, 340, label="两路都握完", size=12.5, color=AMBER))
+    b.append(f'<polyline points="550,384 550,452 105,452 105,286" fill="none" stroke="{AMBER}" '
+             f'stroke-width="1.8" marker-end="url(#arrowhead)"/>')
+    b.append(text(560, 446, "m_bvalid：这一拍才把 o_dmem_ready 拉高", size=12.5, fill=AMBER))
+
+    # ---------------- 每个状态的输出 ----------------
+    ty0, rh = 500, 34
+    cols = [(30, 130), (160, 130), (290, 130), (420, 170), (590, 170), (760, 140), (900, 250)]
+    header = ["状态", "m_arvalid", "m_rready", "m_awvalid", "m_wvalid", "m_bready", "o_dmem_ready"]
+    rows = [
+        ("M_IDLE",  "0", "0", "0", "0", "0", "命中 ITCM → 1；未命中 → 0"),
+        ("M_RADDR", "1", "0", "0", "0", "0", "0"),
+        ("M_RDATA", "0", "1", "0", "0", "0", "m_rvalid 那一拍 → 1"),
+        ("M_WADDR", "0", "0", "aw_pending", "w_pending", "0", "0"),
+        ("M_BRESP", "0", "0", "0", "0", "1", "m_bvalid 那一拍 → 1"),
+    ]
+    b.append(text(30, ty0 - 14, "每个状态各拉高哪些信号（没写的都是 0）：", size=13.5, bold=True))
+    for i in range(7):
+        b.append(f'<line x1="{cols[0][0]}" y1="{ty0 + i * rh}" x2="{cols[-1][0] + cols[-1][1]}" '
+                 f'y2="{ty0 + i * rh}" stroke="#c9d2dc" stroke-width="1"/>')
+    for (x, w) in cols:
+        b.append(f'<line x1="{x}" y1="{ty0}" x2="{x}" y2="{ty0 + 6 * rh}" stroke="#c9d2dc" stroke-width="1"/>')
+    b.append(f'<line x1="{cols[-1][0] + cols[-1][1]}" y1="{ty0}" x2="{cols[-1][0] + cols[-1][1]}" '
+             f'y2="{ty0 + 6 * rh}" stroke="#c9d2dc" stroke-width="1"/>')
+    for j, name in enumerate(header):
+        x, w = cols[j]
+        b.append(text(x + w / 2, ty0 + rh - 11, name, size=12.5, anchor="middle", bold=True))
+    for i, row in enumerate(rows):
+        y = ty0 + rh * (i + 1)
+        for j, cell in enumerate(row):
+            x, w = cols[j]
+            if j == len(cols) - 1:
+                b.append(text(x + 10, y + rh - 11, cell, size=12.5))
+            else:
+                b.append(text(x + w / 2, y + rh - 11, cell, size=12.5, anchor="middle",
+                              bold=(j == 0)))
+
+    b.append(text(30, ty0 + 6 * rh + 30,
+                  "两个细节：M_RDATA 里 o_dmem_rdata 必须直接给 m_rdata（核心在 ready 那一拍就采样）；"
+                  "写的时候 AW 和 W 可能不同拍，所以要用 aw_pending / w_pending 各记一笔。",
+                  size=12.5, fill=MUTED))
+    return svg(1180, ty0 + 6 * rh + 70, "\n".join(b),
+               "5 个状态就够了：IDLE 抓一次请求 → 用 AXI 的多次握手把时间填满 → 用 o_dmem_ready 告诉核心「这笔完成了」")
+
+
 def axi_boot_sequence() -> str:
     """5 步启动流程：每一步之后三个控制寄存器、时钟、复位和核心状态各是什么。"""
     b = []
@@ -1038,6 +1105,7 @@ DIAGRAMS = {
     "axi_boot_path": axi_boot_path,
     "axi_data_path": axi_data_path,
     "axi_boot_sequence": axi_boot_sequence,
+    "axi_master_fsm": axi_master_fsm,
     "learning_loop": learning_loop,
     "repo_map": repo_map,
     "toolchain_flow": toolchain_flow,
@@ -1066,7 +1134,7 @@ USED_BY = {
     "L03a_pipeline": ["pipeline_stages", "hazard_timeline"],
     "L03b_mdu_csr": ["trap_flow"],
     "L04_axi_boot": ["axi_system", "axi_shell", "axi_boot_path", "axi_data_path",
-                     "axi_boot_sequence", "axi_timing"],
+                     "axi_boot_sequence", "axi_master_fsm", "axi_timing"],
 }
 
 def generate(only: list[str] | None = None, verbose: bool = True) -> list[str]:

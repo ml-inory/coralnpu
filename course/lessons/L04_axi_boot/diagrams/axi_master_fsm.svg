@@ -1,0 +1,79 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1180" height="774" viewBox="0 0 1180 774">
+<defs><marker id="arrowhead" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#1f2933"/></marker></defs>
+<rect width="1180" height="774" fill="#ffffff"/>
+<text x="24" y="32" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="17" font-weight="700" fill="#1f2933" text-anchor="start"><tspan x="24" dy="0">主接口状态机：把核心的一次 load/store 变成 AXI 事务</tspan></text>
+<text x="24" y="58" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="13" font-weight="400" fill="#5b6b7b" text-anchor="start"><tspan x="24" dy="0">核心只说「valid 举着、等 ready」；AXI 那边要走好几次握手，状态机负责把两者对齐</tspan></text>
+<rect x="40" y="200" width="140" height="80" rx="8" ry="8" fill="#f3f5f7" stroke="#1f2933" stroke-width="1.6"/><text x="110.0" y="235.775" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="13" font-weight="700" fill="#1f2933" text-anchor="middle"><tspan x="110.0" dy="0">M_IDLE</tspan><tspan x="110.0" dy="17.55">抓一次请求</tspan></text>
+<rect x="250" y="100" width="160" height="80" rx="8" ry="8" fill="#e8effd" stroke="#1d4ed8" stroke-width="1.6"/><text x="330.0" y="135.775" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="middle"><tspan x="330.0" dy="0">M_RADDR</tspan><tspan x="330.0" dy="17.55">发 AR 地址</tspan></text>
+<rect x="470" y="100" width="160" height="80" rx="8" ry="8" fill="#e8effd" stroke="#1d4ed8" stroke-width="1.6"/><text x="550.0" y="135.775" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="middle"><tspan x="550.0" dy="0">M_RDATA</tspan><tspan x="550.0" dy="17.55">等 R 数据</tspan></text>
+<rect x="250" y="300" width="160" height="80" rx="8" ry="8" fill="#fdf1df" stroke="#b45309" stroke-width="1.6"/><text x="330.0" y="335.77500000000003" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="middle"><tspan x="330.0" dy="0">M_WADDR</tspan><tspan x="330.0" dy="17.55">AW、W 各自握手</tspan></text>
+<rect x="470" y="300" width="160" height="80" rx="8" ry="8" fill="#fdf1df" stroke="#b45309" stroke-width="1.6"/><text x="550.0" y="335.77500000000003" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="middle"><tspan x="550.0" dy="0">M_BRESP</tspan><tspan x="550.0" dy="17.55">等 B 响应</tspan></text>
+<path d="M 184 214 L 246 146" fill="none" stroke="#1d4ed8" stroke-width="1.8" marker-end="url(#arrowhead)"/><text x="215.0" y="174.0" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="13" font-weight="400" fill="#5b6b7b" text-anchor="middle"><tspan x="215.0" dy="0">d_go_axi &amp; ~i_dmem_we</tspan></text>
+<path d="M 414 140 L 466 140" fill="none" stroke="#1d4ed8" stroke-width="1.8" marker-end="url(#arrowhead)"/><text x="440.0" y="134.0" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="13" font-weight="400" fill="#5b6b7b" text-anchor="middle"><tspan x="440.0" dy="0">m_arready</tspan></text>
+<polyline points="550,184 550,252 186,252" fill="none" stroke="#1d4ed8" stroke-width="1.8" marker-end="url(#arrowhead)"/>
+<text x="560" y="246" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="13" font-weight="400" fill="#1d4ed8" text-anchor="start"><tspan x="560" dy="0">m_rvalid：这一拍才把 o_dmem_ready 拉高，并给出 o_dmem_rdata</tspan></text>
+<path d="M 184 266 L 246 334" fill="none" stroke="#b45309" stroke-width="1.8" marker-end="url(#arrowhead)"/><text x="215.0" y="294.0" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="13" font-weight="400" fill="#5b6b7b" text-anchor="middle"><tspan x="215.0" dy="0">d_go_axi &amp; i_dmem_we</tspan></text>
+<path d="M 414 340 L 466 340" fill="none" stroke="#b45309" stroke-width="1.8" marker-end="url(#arrowhead)"/><text x="440.0" y="334.0" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="13" font-weight="400" fill="#5b6b7b" text-anchor="middle"><tspan x="440.0" dy="0">两路都握完</tspan></text>
+<polyline points="550,384 550,452 105,452 105,286" fill="none" stroke="#b45309" stroke-width="1.8" marker-end="url(#arrowhead)"/>
+<text x="560" y="446" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="13" font-weight="400" fill="#b45309" text-anchor="start"><tspan x="560" dy="0">m_bvalid：这一拍才把 o_dmem_ready 拉高</tspan></text>
+<text x="30" y="486" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="13.5" font-weight="700" fill="#1f2933" text-anchor="start"><tspan x="30" dy="0">每个状态各拉高哪些信号（没写的都是 0）：</tspan></text>
+<line x1="30" y1="500" x2="1150" y2="500" stroke="#c9d2dc" stroke-width="1"/>
+<line x1="30" y1="534" x2="1150" y2="534" stroke="#c9d2dc" stroke-width="1"/>
+<line x1="30" y1="568" x2="1150" y2="568" stroke="#c9d2dc" stroke-width="1"/>
+<line x1="30" y1="602" x2="1150" y2="602" stroke="#c9d2dc" stroke-width="1"/>
+<line x1="30" y1="636" x2="1150" y2="636" stroke="#c9d2dc" stroke-width="1"/>
+<line x1="30" y1="670" x2="1150" y2="670" stroke="#c9d2dc" stroke-width="1"/>
+<line x1="30" y1="704" x2="1150" y2="704" stroke="#c9d2dc" stroke-width="1"/>
+<line x1="30" y1="500" x2="30" y2="704" stroke="#c9d2dc" stroke-width="1"/>
+<line x1="160" y1="500" x2="160" y2="704" stroke="#c9d2dc" stroke-width="1"/>
+<line x1="290" y1="500" x2="290" y2="704" stroke="#c9d2dc" stroke-width="1"/>
+<line x1="420" y1="500" x2="420" y2="704" stroke="#c9d2dc" stroke-width="1"/>
+<line x1="590" y1="500" x2="590" y2="704" stroke="#c9d2dc" stroke-width="1"/>
+<line x1="760" y1="500" x2="760" y2="704" stroke="#c9d2dc" stroke-width="1"/>
+<line x1="900" y1="500" x2="900" y2="704" stroke="#c9d2dc" stroke-width="1"/>
+<line x1="1150" y1="500" x2="1150" y2="704" stroke="#c9d2dc" stroke-width="1"/>
+<text x="95.0" y="523" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="13" font-weight="700" fill="#1f2933" text-anchor="middle"><tspan x="95.0" dy="0">状态</tspan></text>
+<text x="225.0" y="523" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="13" font-weight="700" fill="#1f2933" text-anchor="middle"><tspan x="225.0" dy="0">m_arvalid</tspan></text>
+<text x="355.0" y="523" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="13" font-weight="700" fill="#1f2933" text-anchor="middle"><tspan x="355.0" dy="0">m_rready</tspan></text>
+<text x="505.0" y="523" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="13" font-weight="700" fill="#1f2933" text-anchor="middle"><tspan x="505.0" dy="0">m_awvalid</tspan></text>
+<text x="675.0" y="523" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="13" font-weight="700" fill="#1f2933" text-anchor="middle"><tspan x="675.0" dy="0">m_wvalid</tspan></text>
+<text x="830.0" y="523" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="13" font-weight="700" fill="#1f2933" text-anchor="middle"><tspan x="830.0" dy="0">m_bready</tspan></text>
+<text x="1025.0" y="523" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="13" font-weight="700" fill="#1f2933" text-anchor="middle"><tspan x="1025.0" dy="0">o_dmem_ready</tspan></text>
+<text x="95.0" y="557" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="13" font-weight="700" fill="#1f2933" text-anchor="middle"><tspan x="95.0" dy="0">M_IDLE</tspan></text>
+<text x="225.0" y="557" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="middle"><tspan x="225.0" dy="0">0</tspan></text>
+<text x="355.0" y="557" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="middle"><tspan x="355.0" dy="0">0</tspan></text>
+<text x="505.0" y="557" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="middle"><tspan x="505.0" dy="0">0</tspan></text>
+<text x="675.0" y="557" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="middle"><tspan x="675.0" dy="0">0</tspan></text>
+<text x="830.0" y="557" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="middle"><tspan x="830.0" dy="0">0</tspan></text>
+<text x="910" y="557" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start"><tspan x="910" dy="0">命中 ITCM → 1；未命中 → 0</tspan></text>
+<text x="95.0" y="591" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="13" font-weight="700" fill="#1f2933" text-anchor="middle"><tspan x="95.0" dy="0">M_RADDR</tspan></text>
+<text x="225.0" y="591" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="middle"><tspan x="225.0" dy="0">1</tspan></text>
+<text x="355.0" y="591" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="middle"><tspan x="355.0" dy="0">0</tspan></text>
+<text x="505.0" y="591" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="middle"><tspan x="505.0" dy="0">0</tspan></text>
+<text x="675.0" y="591" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="middle"><tspan x="675.0" dy="0">0</tspan></text>
+<text x="830.0" y="591" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="middle"><tspan x="830.0" dy="0">0</tspan></text>
+<text x="910" y="591" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start"><tspan x="910" dy="0">0</tspan></text>
+<text x="95.0" y="625" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="13" font-weight="700" fill="#1f2933" text-anchor="middle"><tspan x="95.0" dy="0">M_RDATA</tspan></text>
+<text x="225.0" y="625" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="middle"><tspan x="225.0" dy="0">0</tspan></text>
+<text x="355.0" y="625" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="middle"><tspan x="355.0" dy="0">1</tspan></text>
+<text x="505.0" y="625" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="middle"><tspan x="505.0" dy="0">0</tspan></text>
+<text x="675.0" y="625" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="middle"><tspan x="675.0" dy="0">0</tspan></text>
+<text x="830.0" y="625" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="middle"><tspan x="830.0" dy="0">0</tspan></text>
+<text x="910" y="625" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start"><tspan x="910" dy="0">m_rvalid 那一拍 → 1</tspan></text>
+<text x="95.0" y="659" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="13" font-weight="700" fill="#1f2933" text-anchor="middle"><tspan x="95.0" dy="0">M_WADDR</tspan></text>
+<text x="225.0" y="659" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="middle"><tspan x="225.0" dy="0">0</tspan></text>
+<text x="355.0" y="659" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="middle"><tspan x="355.0" dy="0">0</tspan></text>
+<text x="505.0" y="659" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="middle"><tspan x="505.0" dy="0">aw_pending</tspan></text>
+<text x="675.0" y="659" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="middle"><tspan x="675.0" dy="0">w_pending</tspan></text>
+<text x="830.0" y="659" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="middle"><tspan x="830.0" dy="0">0</tspan></text>
+<text x="910" y="659" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start"><tspan x="910" dy="0">0</tspan></text>
+<text x="95.0" y="693" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="13" font-weight="700" fill="#1f2933" text-anchor="middle"><tspan x="95.0" dy="0">M_BRESP</tspan></text>
+<text x="225.0" y="693" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="middle"><tspan x="225.0" dy="0">0</tspan></text>
+<text x="355.0" y="693" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="middle"><tspan x="355.0" dy="0">0</tspan></text>
+<text x="505.0" y="693" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="middle"><tspan x="505.0" dy="0">0</tspan></text>
+<text x="675.0" y="693" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="middle"><tspan x="675.0" dy="0">0</tspan></text>
+<text x="830.0" y="693" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="middle"><tspan x="830.0" dy="0">1</tspan></text>
+<text x="910" y="693" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="13" font-weight="400" fill="#1f2933" text-anchor="start"><tspan x="910" dy="0">m_bvalid 那一拍 → 1</tspan></text>
+<text x="30" y="734" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="13" font-weight="400" fill="#5b6b7b" text-anchor="start"><tspan x="30" dy="0">两个细节：M_RDATA 里 o_dmem_rdata 必须直接给 m_rdata（核心在 ready 那一拍就采样）；写的时候 AW 和 W 可能不同拍，所以要用 aw_pending / w_pending 各记一笔。</tspan></text>
+<text x="24" y="760" font-family="'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif" font-size="13" font-weight="400" fill="#5b6b7b" text-anchor="start"><tspan x="24" dy="0">5 个状态就够了：IDLE 抓一次请求 → 用 AXI 的多次握手把时间填满 → 用 o_dmem_ready 告诉核心「这笔完成了」</tspan></text>
+</svg>

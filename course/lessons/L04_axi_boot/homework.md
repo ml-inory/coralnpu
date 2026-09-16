@@ -105,6 +105,8 @@ module axi_lite_slave (
 
 **Step 6：AXI 主状态机** —— 读 `AR → R`、写 `AW+W → B`，
 在"事务真正完成的那一拍"拉高 `o_dmem_ready`（读的时候同时给出 `o_dmem_rdata`）。
+每个状态该拉高哪些信号、AW/W 不同拍怎么记账：见《基础知识》2.7 节的
+[主接口状态机](diagrams/axi_master_fsm.svg)与那张逐状态输出表。
 
 ## 3. 调试方法
 

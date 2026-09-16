@@ -194,6 +194,32 @@ assign o_dmem_ready = i_dmem_we ? ((mstate == M_BRESP) && m_bvalid)      // 写�
 assign o_dmem_rdata = d_hit_itcm ? itcm_drdata : m_rdata;                // 读数据同拍给出
 ```
 
+上面那段只回答了"什么时候告诉核心完成"，剩下"请求怎么发到总线上"就是主状态机的事：
+
+![主接口状态机与每个状态的输出](diagrams/axi_master_fsm.svg)
+
+**主设备和从设备的义务是不对称的**，写主接口之前先把这张表记住：
+
+| | 谁拉 VALID | 谁给 READY | 写错了会怎样 |
+| --- | --- | --- | --- |
+| 主机侧（你在 `axi_lite_slave.sv` 里当从设备） | 主机 | 你 | 你不拉 ready → 主机永远等 |
+| 核心侧 `m_axi`（你在 `axi_boot_shell.sv` 里当主设备） | 你 | 系统里的从设备 | 你 VALID 撤早了 → 从设备当没这回事，事务丢了 |
+
+四条规则，正好对应状态机里的 5 个状态：
+
+1. **VALID 由你发起，且不能因为 READY 没来就撤**：`m_arvalid` 在 `M_RADDR` 里一直举着，
+   直到 `m_arready` 那一拍；`m_araddr` 也必须保持不动——所以地址要在 `M_IDLE` 就抓进 `m_addr_q`。
+2. **一次读 = AR 握手 + R 握手**：AR 只是"我要读这个地址"，R 才是数据，
+   所以状态得走 `M_RADDR → M_RDATA`。`o_dmem_ready` 只能在 R 到达的那一拍拉高。
+3. **一次写 = AW 握手 + W 握手 + B 握手**，前两个是**互相独立**的通道：
+   从设备可能这一拍收地址、下一拍才收数据（反过来也行），所以要给 AW 和 W 各记一笔
+   "还欠着"（`aw_pending` / `w_pending`），两路都握完才进 `M_BRESP` 等响应。
+4. **outstanding = 1**：一笔做完回到 `M_IDLE` 才接下一笔，不需要考虑多笔同时在飞。
+
+最后提醒一句：`o_dmem_ready` 的语义是"**这笔事务完成了**"，不是"总线空闲"。
+读的时候它必须和 `m_rvalid` 同拍，而且那一拍 `o_dmem_rdata` 已经是 `m_rdata`——
+核心是在 ready 那一拍就采样的，晚一拍就采到旧数据。
+
 **为什么 ITCM 命中的访问不总线？** 因为核心的取指端口是**组合读**——
 它给出地址的那一拍就要拿到指令，没有停顿信号。所以 ITCM 必须放在外壳内部、
 用组合读实现（`tests/tcm.sv`）；而 DTCM 在测试平台里（当作系统存储器），
