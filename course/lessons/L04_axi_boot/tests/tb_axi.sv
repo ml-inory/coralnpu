@@ -65,6 +65,7 @@ module tb_axi;
   logic [31:0] dmem[0:DMEM_WORDS-1];
 
   string       program_path, data_path, trace_path, dmem_path;
+  string       vcd_path;
   int unsigned max_cycles, cycles = 0;
   int unsigned bus_cycles = 0;
   int unsigned latency = 0;
@@ -307,6 +308,15 @@ module tb_axi;
     if (trace_fd == 0) begin
       $display("无法打开 trace 文件 %s", trace_path);
       $finish;
+    end
+
+    // 波形：./learn wave L04 会打开这个开关，可以逐拍看信号名与值
+    if ($test$plusargs("WAVES")) begin
+      vcd_path = "waves.vcd";
+      void'($value$plusargs("VCD=%s", vcd_path));
+      $dumpfile(vcd_path);
+      $dumpvars(0, tb_axi);
+      $display("WAVES %s", vcd_path);
     end
 
     // 总线侧的初始状态

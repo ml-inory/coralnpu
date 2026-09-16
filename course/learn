@@ -8,6 +8,7 @@
   ./learn check L01       运行本课检查器（--ref 跑参考实现）
   ./learn hint L01 3      看第 3 条分级提示
   ./learn unlock L01      解锁参考实现
+  ./learn wave L04 --only 10 --signals s_aw,s_w --first 30   看波形（信号名+值）
   ./learn progress        学习进度
   ./learn pdf all         重新渲染课程 PDF
   ./learn figs            重新生成插图
@@ -245,9 +246,62 @@ def cmd_diag(argv: list[str]) -> int:
     return subprocess.run([sys.executable, script] + list(argv)).returncode
 
 
+def cmd_wave(argv: list[str]) -> int:
+    """跑一遍检查（带波形转储），再把 VCD 打印成"信号名 + 值"的表格。"""
+    if not argv:
+        print("用法：./learn wave L04 --only 10 --signals s_aw,s_w --first 30")
+        return 2
+    code = argv[0]
+    stage = by_code(code)
+    if not stage:
+        print(f"没有这个阶段：{code}")
+        return 2
+    checks = os.path.join(lesson_dir(stage), "tests", "checks.py")
+    if not os.path.exists(checks):
+        print(f"{stage.code} 还没有检查器。")
+        return 2
+
+    rest = list(argv[1:])
+    wave_args, check_args = [], []
+    i = 0
+    while i < len(rest):
+        if rest[i] in ("--signals", "--cycles", "--first", "--from", "--to", "--max-signals"):
+            wave_args += rest[i:i + 2]
+            i += 2
+        else:
+            check_args.append(rest[i])
+            i += 1
+
+    print(f"运行 {stage.code} 检查并转储波形……")
+    proc = subprocess.run([sys.executable, checks, "--waves", "--no-color"] + check_args,
+                          capture_output=True, text=True)
+    tail = [l for l in proc.stdout.splitlines() if l.strip()]
+    print("\n".join(tail[-6:]) if tail else "")
+    sys.stdout.flush()
+
+    wave_dir = os.path.join(HERE, "work", stage.code.replace("L03A", "L03a").replace("L03B", "L03b"), "waves")
+    if not os.path.isdir(wave_dir):
+        # 目录名与阶段号不一定一致，退而求其次：按最近修改找
+        wave_dir = os.path.join(HERE, "work")
+    candidates = []
+    for root, _, files in os.walk(wave_dir):
+        candidates += [os.path.join(root, f) for f in files if f.endswith(".vcd")]
+    if not candidates:
+        print("没有找到 .vcd：检查器可能没跑到仿真（先确认编译通过）。")
+        return 1
+    preferred = [c for c in candidates if "lat0" in os.path.basename(c)]
+    vcd = max(preferred or candidates, key=os.path.getmtime)
+    print("")
+    print(f"波形：{os.path.relpath(vcd, os.path.dirname(HERE))}")
+    print("")
+    vcd_tool = os.path.join(HERE, "tools", "vcd.py")
+    return subprocess.run([sys.executable, vcd_tool, vcd] + wave_args).returncode
+
+
 COMMANDS = {
     "doctor": cmd_doctor,
     "diag": cmd_diag,
+    "wave": cmd_wave,
     "list": cmd_list,
     "start": cmd_start,
     "check": cmd_check,

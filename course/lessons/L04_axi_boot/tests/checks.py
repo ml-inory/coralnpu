@@ -29,6 +29,7 @@ import argparse
 import json
 import os
 import re
+import subprocess
 import sys
 from datetime import datetime
 
@@ -44,6 +45,69 @@ from tools.disasm import disasm  # noqa: E402
 
 WORK = os.path.join(LEARN, "work", "L04")
 LATENCIES = (0, 2)
+WAVES = False          # --waves 时打开波形转储（./learn wave 会用）
+
+# 失败时自动打印的信号：按通道拆开，每组都很短，避免"信号太多看麻了"
+AUTO_GROUPS = [
+    ("写通道", "s_awvalid,s_awready,s_wvalid,s_wready,s_bvalid,s_bready"),
+    ("读通道", "s_arvalid,s_arready,s_rvalid,s_rready"),
+]
+WAVE_WINDOW = 40      # 看最后 40 拍（卡住的地方在尾部），只留变化行
+
+
+def autopsy(name: str, latency: int, log: str) -> str:
+    """失败后自动重跑一次带波形的仿真，返回"期望/实际 + 内部信号"的说明。
+
+    默认检查只跑一次（快）；失败才做这件事，所以正常通过的用例不受影响。
+    """
+    stem = os.path.splitext(name)[0]
+    build_dir = os.path.join(WORK, "build", stem)
+    sim_dir = os.path.join(WORK, "sim", stem)
+    vcd = os.path.join(WORK, "waves", f"{stem}_lat{latency}.vcd")
+    os.makedirs(os.path.dirname(vcd), exist_ok=True)
+
+    pro_hex = os.path.join(build_dir, "program.hex")
+    data_hex = os.path.join(build_dir, "data.hex")
+    elf = os.path.join(build_dir, stem + ".elf")
+    entry = 0
+    try:
+        from golden.elf import load_elf
+        entry = load_elf(elf).entry
+    except Exception:                     # noqa: BLE001
+        pass
+
+    try:
+        run_rtl.run_sim(os.path.join(WORK, "sim.vvp"), sim_dir, pro_hex, data_hex,
+                        name=f"{stem}_autopsy_{latency}",
+                        plusargs={"ENTRY": entry, "LATENCY": latency, "WAVES": 1, "VCD": vcd},
+                        max_cycles=200_000)
+    except run_rtl.RtlError as exc:
+        return f"  （自动波形失败：{exc}）"
+
+    lines = []
+    host = [l.strip() for l in log.splitlines() if l.strip().startswith("HOST ")]
+    if host:
+        lines.append("  测试平台的观测值（resp: 0=OKAY  2=SLVERR）：")
+        lines += [f"    {l}" for l in host[:6]]
+        if any("resp=2" in l for l in host[:3]):
+            lines.append("    期望：ITCM(0x0)/CSR(0x30000) 命中时 resp 应为 0；只有未映射地址才是 2。")
+
+    tool = os.path.join(LEARN, "tools", "vcd.py")
+    for title, signals in AUTO_GROUPS:
+        proc = subprocess.run([sys.executable, tool, vcd, "--signals", signals,
+                               "--cycles", str(WAVE_WINDOW), "--changes-only", "--elide", "16"],
+                              capture_output=True, text=True)
+        if proc.returncode == 0 and proc.stdout.strip():
+            body = [l for l in proc.stdout.strip().splitlines()
+                    if not l.startswith("说明：") and not l.startswith("（已折叠")]
+            if len(body) <= 3:      # 只有表头/分隔线，说明这一路没动过
+                lines.append(f"  {title}：最后 {WAVE_WINDOW} 拍没有任何变化")
+                continue
+            lines.append(f"  {title}（最后 {WAVE_WINDOW} 拍里发生变化的行；中间相同的重复已省略）：")
+            lines += ["    " + l for l in body]
+    lines.append(f"    完整波形：{os.path.relpath(vcd, ROOT)}"
+                 f"（./learn wave L04 --only 10 --signals xxx 可以自己选信号）")
+    return "\n".join(lines)
 L04_PROGRAMS = os.path.join(HERE, "programs")
 LINK_L04 = os.path.join(HERE, "link", "learn_tcm_0x100.ld")
 L03B_PROGRAMS = os.path.join(LEARN, "lessons", "L03b_mdu_csr", "tests", "programs")
@@ -179,19 +243,29 @@ def run_case(name: str, path: str, march: str, mode: str, linker: str | None,
             return False, f"黄金模型执行失败：{exc}", 0, 0
 
     try:
+        extra = {"ENTRY": built.entry, "LATENCY": latency}
+        if WAVES:
+            wave_dir = os.path.join(WORK, "waves")
+            os.makedirs(wave_dir, exist_ok=True)
+            extra["WAVES"] = 1
+            extra["VCD"] = os.path.join(wave_dir, f"{os.path.splitext(name)[0]}_lat{latency}.vcd")
         sim = run_rtl.run_sim(vvp, build_dir, built.program_hex, built.data_hex,
                               name=f"{os.path.splitext(name)[0]}_lat{latency}",
-                              plusargs={"ENTRY": built.entry, "LATENCY": latency},
+                              plusargs=extra,
                               max_cycles=200_000)
     except run_rtl.RtlError as exc:
         return False, str(exc), 0, len(gold)
 
     problems = boot_flow_problems(sim.log, built.entry, mode, need_rd)
     if problems:
-        return False, "\n".join("  " + p for p in problems), sim.cycles, len(gold)
+        msg = "\n".join("  " + p for p in problems)
+        msg += "\n" + autopsy(name, latency, sim.log)
+        return False, msg, sim.cycles, len(gold)
 
     if sim.timeout:
-        return False, "RTL 超时：核心没有停机（检查 STATUS 与 5 步启动顺序）。", sim.cycles, len(gold)
+        msg = "RTL 超时：核心没有停机（检查 STATUS 与 5 步启动顺序）。"
+        msg += "\n" + autopsy(name, latency, sim.log)
+        return False, msg, sim.cycles, len(gold)
 
     if mode == "golden":
         if not sim.halted:
@@ -285,7 +359,10 @@ def main() -> int:
     ap.add_argument("--only", default=None)
     ap.add_argument("--list", action="store_true")
     ap.add_argument("--no-color", action="store_true")
+    ap.add_argument("--waves", action="store_true", help="转储 VCD 波形（配合 ./learn wave）")
     args = ap.parse_args()
+    global WAVES
+    WAVES = args.waves
     colorize = not args.no_color and sys.stdout.isatty()
 
     if args.list:
