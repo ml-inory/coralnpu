@@ -117,17 +117,17 @@ module axi_boot_shell (
   // TODO 1：地址译码（ITCM / CSR / 未映射）与响应码
   // l_wr_en 是写脉冲，l_rd_addr 是正在读的地址
   logic wr_hit_itcm, wr_hit_csr, rd_hit_itcm, rd_hit_csr;
-  assign wr_hit_itcm = l_wr_en & (l_rd_addr < 32'h0000_1FFF);
-  assign wr_hit_csr  = l_wr_en & (l_rd_addr >= CSR_BASE & l_rd_addr <= CSR_BASE + 32'h0000_0008);
-  assign rd_hit_itcm = l_rd_addr < 32'h0000_1FFF;
-  assign rd_hit_csr  = l_rd_addr >= CSR_BASE & l_rd_addr <= CSR_BASE + 32'h0000_0008;
+  assign wr_hit_itcm = l_wr_en & (l_wr_addr < ITCM_BYTES);
+  assign wr_hit_csr  = l_wr_en & (l_wr_addr >= CSR_BASE & l_wr_addr <= CSR_BASE + 32'd8);
+  assign rd_hit_itcm = l_rd_addr < ITCM_BYTES;
+  assign rd_hit_csr  = (l_rd_addr >= CSR_BASE) & (l_rd_addr <= CSR_BASE + 32'd8);
   // 注意：l_rd_data 现在由下面的 TCM 实例驱动（TODO 3 做 CSR 时再改成按 hit 选择）
   assign l_rd_resp   = ~l_wr_en & (rd_hit_itcm | rd_hit_csr) ? OKAY : SLVERR;
   assign l_wr_resp   = l_wr_en  & (wr_hit_itcm | wr_hit_csr) ? OKAY : SLVERR;
 
   // ---------------------------------------------------------------- TODO 2
   // TODO 2：例化 ITCM（tcm.sv），把主机写口接到译码结果
-  logic [31:0] itcm_irdata, itcm_drdata;
+  logic [31:0] itcm_irdata, itcm_drdata, itcm_host_rdata;
 
   tcm #(ITCM_BYTES, 32'h0000_0000) u_tcm
   (
@@ -137,7 +137,7 @@ module axi_boot_shell (
     .host_wdata(l_wr_data),
     .host_wstrb(l_wr_strb),
     .host_raddr(l_rd_addr),
-    .host_rdata(l_rd_data),
+    .host_rdata(itcm_host_rdata),
     .iaddr(i_imem_addr),
     .irdata(itcm_irdata),
     .daddr(i_dmem_addr),
@@ -152,15 +152,27 @@ module axi_boot_shell (
   logic        bus_error_q;    // 总线上出现过非 OKAY 响应
   logic [31:0] csr_rdata;
 
-  assign csr_rdata = 32'h0;
+  // 假CSR，只是3个寄存器
+  always_comb begin
+    if (rd_hit_csr) begin
+      case (l_rd_addr)
+        CSR_BASE:         csr_rdata = {30'h0, cg_bit, reset_bit};
+        CSR_BASE + 32'd4: csr_rdata = pc_start_q;
+        CSR_BASE + 32'd8: csr_rdata = {30'h0, i_core_fault, i_core_halted};
+      endcase
+    end
+  end
+  
+  // 读数据MUX
+  assign l_rd_data = rd_hit_itcm ? itcm_host_rdata : csr_rdata;
 
   // TODO 4：复位值与两个寄存器写入；并且
   //   o_core_rst      = rst | reset_bit
   //   o_core_clk_gate = cg_bit
   //   o_core_pc_start = pc_start_q
-  assign o_core_rst      = rst;
-  assign o_core_clk_gate = 1'b1;
-  assign o_core_pc_start = 32'h0;
+  assign o_core_rst      = rst | reset_bit;
+  assign o_core_clk_gate = cg_bit;
+  assign o_core_pc_start = pc_start_q;
 
   always_ff @(posedge clk) begin
     if (rst) begin
@@ -170,18 +182,28 @@ module axi_boot_shell (
       bus_error_q <= 1'b0;
     end else begin
       // TODO 4：写 RESET_CONTROL / PC_START；出现非 OKAY 响应时记一笔故障
+      if (wr_hit_csr & (l_wr_addr == CSR_BASE)) begin
+        reset_bit <= l_wr_data[0];
+        cg_bit    <= l_wr_data[1];
+      end
+
+      if (wr_hit_csr & (l_wr_addr == CSR_BASE + 32'd4)) begin
+        pc_start_q <= l_wr_data;
+      end
+
+      bus_error_q <= i_core_fault | i_core_halted;
     end
   end
 
   // ---------------------------------------------------------------- TODO 5
   // TODO 5：取指读 ITCM；数据命中 ITCM 内部服务，否则交给主状态机
-  assign o_imem_rdata = 32'h0;
+  assign o_imem_rdata = itcm_irdata;
 
   logic d_hit_itcm, d_go_axi;
-  assign d_hit_itcm   = 1'b0;
-  assign d_go_axi     = 1'b0;
-  assign o_dmem_rdata = 32'h0;
-  assign o_dmem_ready = 1'b0;
+  assign d_hit_itcm   = i_dmem_addr < ITCM_BYTES;
+  assign d_go_axi     = i_dmem_valid & ~d_hit_itcm;
+  assign o_dmem_rdata = d_hit_itcm ? itcm_drdata : m_rdata;
+  assign o_dmem_ready = d_hit_itcm ? 1'b1 : m_rready;
 
   // ---------------------------------------------------------------- TODO 6
   // TODO 6：AXI 主接口（单拍读 AR→R、单拍写 AW+W→B）

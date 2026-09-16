@@ -68,11 +68,11 @@ module axi_lite_slave (
   assign s_wready  = ~w_have & ~b_pending;
 
   // TODO 2：两路都到齐的那一拍拉高 o_wr_en；随后把 i_wr_resp 作为 B 响应发出去
-  assign o_wr_en   = s_awvalid & s_wvalid;  // TODO
+  assign o_wr_en   = aw_have & w_have;  // TODO
   assign o_wr_addr = aw_addr_q;
   assign o_wr_data = w_data_q;
   assign o_wr_strb = w_strb_q;
-  assign s_bvalid  = ((s_awready & s_awvalid) & (s_wready & s_wvalid));  // TODO
+  assign s_bvalid  = b_pending;  // TODO
   assign s_bresp   = b_resp_q;
 
   // ---- 读通道 ----------------------------------------------------
@@ -81,7 +81,7 @@ module axi_lite_slave (
   assign o_rd_addr = ar_addr_q;
 
   // TODO 4：R 响应（组合的 i_rd_data / i_rd_resp 直接转发）
-  assign s_rvalid  = s_rready & ~r_pending;
+  assign s_rvalid  = r_pending;
   assign s_rdata   = i_rd_data;
   assign s_rresp   = i_rd_resp;
 
@@ -100,6 +100,36 @@ module axi_lite_slave (
       b_resp_q  <= 2'b00;
     end else begin
       // TODO 5：AW/W/AR 到齐时置标志、写完成时清标志并回 B、R 被接走后清 r_pending
+      if (~aw_have & s_awready & s_awvalid) begin
+        aw_have <= 1'b1;
+        aw_addr_q <= s_awaddr;
+      end
+
+      if (~w_have & s_wready & s_wvalid) begin
+        w_have <= 1'b1;
+        w_data_q <= s_wdata;
+        w_strb_q <= s_wstrb;
+      end
+
+      if (aw_have & w_have) begin
+        aw_have <= 1'b0;
+        w_have <= 1'b0;
+        b_pending <= 1'b1;
+        b_resp_q <= i_wr_resp;
+      end
+
+      if (b_pending & s_bready) begin
+        b_pending <= 1'b0;
+      end
+
+      if (s_arready & s_arvalid) begin
+        ar_addr_q <= s_araddr;
+        r_pending <= 1'b1;
+      end
+
+      if (r_pending & s_rready) begin
+        r_pending <= 1'b0;
+      end
     end
   end
 
